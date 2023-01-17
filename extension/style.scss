@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+button, input, optgroup, select, textarea {
+    border:2px solid !important;
+}

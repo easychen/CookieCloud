@@ -1,0 +1,9 @@
+{
+    "appTitle": {
+        "message": "CookieCloud"
+    },
+    "appDesc": {
+        "message": "CookieCloud是一款向自架服务器同步浏览器Cookie的工具。",
+        "description":"采用端对端加密，保证您的Cookie安全。"
+    }
+  }
