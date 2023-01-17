@@ -1,5 +1,5 @@
 import "@plasmohq/messaging/background";
-import { upload_cookie, load_data, save_data } from '../function';
+import { upload_cookie, download_cookie, load_data, save_data } from '../function';
 
 export const life = 42
 console.log(`HELLO WORLD - ${life}`)
@@ -49,6 +49,11 @@ chrome.alarms.onAlarm.addListener( async a =>
                 if(config.type && config.type == 'down')
                 {
                     // 从服务器取得cookie，向本地写入cookie
+                    const result = await download_cookie(config);
+                    if( result && result['action'] == 'done' ) 
+                        console.log("下载覆盖成功");
+                    else
+                        console.log( result );
                 }else
                 {
                     
