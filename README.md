@@ -16,3 +16,19 @@ CookieCloud是一个向自架服务器同步Cookie的小工具，可以将电脑
 cd api && yarn install && node app.js
 ```
 默认端口 8088 
+
+## Cookie解密算法
+
+1. md5(uuid+password) 取前16位作为key
+2. AES.decrypt(encrypted, the_key)
+
+```node
+function cookie_decrypt( uuid, encrypted, password )
+{
+    const CryptoJS = require('crypto-js');
+    const the_key = CryptoJS.MD5(uuid+'-'+password).toString().substring(0,16);
+    const decrypted = CryptoJS.AES.decrypt(encrypted, the_key).toString(CryptoJS.enc.Utf8);
+    const parsed = JSON.parse(decrypted);
+    return parsed;
+}
+```
