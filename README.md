@@ -4,6 +4,10 @@
 
 CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览器的登录态同步到手机和云端，它内置端对端加密，可设定同步时间间隔。
 
+## 商店安装
+
+[Edge商店](https://microsoftedge.microsoft.com/addons/detail/cookiecloud/bffenpfpjikaeocaihdonmgnjjdpjkeo)
+
 ## 浏览器插件下载
 
 见 Release
