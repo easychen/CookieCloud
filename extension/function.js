@@ -1,4 +1,5 @@
 import CryptoJS from 'crypto-js';
+import { gzip } from 'pako';
 
 export async function storage_set( key, value )
 {
@@ -56,8 +57,19 @@ export async function upload_cookie( payload )
     // 用aes对cookie进行加密
     const the_key = CryptoJS.MD5(payload['uuid']+'-'+payload['password']).toString().substring(0,16);
     const encrypted = CryptoJS.AES.encrypt(JSON.stringify(cookies), the_key).toString();
-    
     const endpoint = payload['endpoint'].trim().replace(/\/+$/, '')+'/update';
+
+    // get sha256 of the encrypted data
+    const sha256 = CryptoJS.SHA256(uuid+"-"+endpoint+"-"+JSON.stringify(cookies)).toString();
+    console.log( "sha256", sha256 );
+    const last_uploaded_info = await load_data( 'LAST_UPLOADED_COOKIE' );
+    // 如果24小时内已经上传过同样内容的数据，则不再上传
+    if( last_uploaded_info && last_uploaded_info.sha256 === sha256 && new Date().getTime() - last_uploaded_info.timestamp < 1000*60*60*24 )
+    {
+        console.log("same data in 24 hours, skip");
+        return {action:'done'};
+    }
+    
     const payload2 = {
             uuid: payload['uuid'],
             encrypted: encrypted
@@ -67,11 +79,16 @@ export async function upload_cookie( payload )
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Content-Encoding': 'gzip',
             },
-            body: JSON.stringify(payload2)
+            body: gzip(JSON.stringify(payload2))
         });
         const result = await response.json();
+
+        if( result && result.action === 'done' ) 
+            await save_data( 'LAST_UPLOADED_COOKIE', {"timestamp": new Date().getTime(), "sha256":sha256 } );    
+
         return result;
     } catch (error) {
         console.log("error", error);
@@ -111,7 +128,7 @@ export async function download_cookie(payload)
                             new_cookie.url = buildUrl(cookie.secure, cookie.domain, cookie.path);
                             // console.log(new_cookie);
                             chrome.cookies.set(new_cookie, (e)=>{
-                                // console.log("in error", e);
+                               console.log("set cookie", e);
                             });
                         }
                     }
