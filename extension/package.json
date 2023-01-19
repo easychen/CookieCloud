@@ -2,11 +2,10 @@
   "name": "cookie-cloud",
   "displayName": "CookieCloud",
   "description": "__MSG_appDesc__",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "default_locale": "zh_CN",
   "author": "easychen@gmail.com",
-  "license": "UNLICENSED",
-  "private": "true",
+  "license": "GPLv3",
   "scripts": {
     "dev": "plasmo dev",
     "build": "plasmo build",
@@ -17,6 +16,7 @@
     "antd": "^5.1.5",
     "crypto-js": "^4.1.1",
     "js-base64": "^3.7.4",
+    "pako": "^2.1.0",
     "plasmo": "0.62.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -36,6 +36,7 @@
   },
   "manifest": {
     "name": "__MSG_appTitle__",
+    "default_locale": "zh_CN",
     "host_permissions": [
       "https://*/*"
     ],
