@@ -11,6 +11,7 @@ specifiers:
   autoprefixer: ^10.4.13
   crypto-js: ^4.1.1
   js-base64: ^3.7.4
+  pako: ^2.1.0
   plasmo: 0.62.2
   postcss: ^8.4.21
   prettier: 2.7.1
@@ -25,6 +26,7 @@ dependencies:
   antd: registry.npmmirror.com/antd/5.1.5_biqbaboplfbrettd7655fr4n2y
   crypto-js: registry.npmmirror.com/crypto-js/4.1.1
   js-base64: registry.npmmirror.com/js-base64/3.7.4
+  pako: registry.npmmirror.com/pako/2.1.0
   plasmo: registry.npmmirror.com/plasmo/0.62.2_gjpyg5imi5mt2gbvkmn3a4dr7m
   react: registry.npmmirror.com/react/18.2.0
   react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
@@ -5567,6 +5569,12 @@ packages:
       registry-auth-token: registry.npmmirror.com/registry-auth-token/5.0.1
       registry-url: registry.npmmirror.com/registry-url/6.0.1
       semver: registry.npmmirror.com/semver/7.3.8
+    dev: false
+
+  registry.npmmirror.com/pako/2.1.0:
+    resolution: {integrity: sha512-w+eufiZ1WuJYgPXbV/PO3NCMEc3xqylkKHzp8bxp1uW4qaSNQUkwmLLEc3kKsfz8lpV1F8Ht3U1Cm+9Srog2ug==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/pako/-/pako-2.1.0.tgz}
+    name: pako
+    version: 2.1.0
     dev: false
 
   registry.npmmirror.com/param-case/3.0.4:

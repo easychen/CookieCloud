@@ -6,9 +6,26 @@
  */
 class RoboFile extends \Robo\Tasks
 {
-    // define public methods as commands
-    public function buildDev()
+    public function apiDev()
     {
-        $this->_exec("cd extension && npx browserslist@latest --update-db && yarn build");
+        $this->_exec("cd api && node_modules/nodemon/bin/nodemon.js app.js");
+    }
+
+    public function imagePub($uniqid = null)
+    {
+        if ($uniqid == null) {
+            $uniqid = date("Y.m.d.H.i");
+            ;
+        }
+
+        $this->_exec("docker buildx create --use --name build-node-example --driver docker-container");
+        $this->_exec("docker buildx build -t easychen/cookiecloud:latest -t easychen/cookiecloud:$uniqid --platform=linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push ./docker");
+        $this->_exec("docker buildx rm build-node-example");
+   
+    }
+
+    public function extBuild()
+    {
+        $this->_exec("cd extension && pnpm build && pnpm package");
     }
 }

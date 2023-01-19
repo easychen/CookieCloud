@@ -7,7 +7,8 @@ export type RequestBody = {
 }
 
 export type ResponseBody = {
-    message: string
+    message: string,
+    note: string|null,
 }
  
 export const handler: PlasmoMessaging.MessageHandler<RequestBody,
@@ -16,7 +17,8 @@ ResponseBody> = async (req, res) => {
     const payload = req.body.payload;
     const result = (payload['type'] && payload['type'] == 'down') ?  await download_cookie(payload) : await upload_cookie(payload);
     res.send({
-        message: result['action']
+        message: result['action'],
+        note: result['note'],
     })   
 }
 

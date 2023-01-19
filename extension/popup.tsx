@@ -10,7 +10,7 @@ import type { RadioChangeEvent } from 'antd';
 import { Radio } from 'antd';
 
 function IndexPopup() {
-  let init: Object={"endpoint":"http://127.0.0.1:8088","password":"123","interval":10,"domains":".jd.com","uuid":String(short_uid.generate()),"type":"up"};
+  let init: Object={"endpoint":"http://127.0.0.1:8088","password":"123","interval":10,"domains":"","uuid":String(short_uid.generate()),"type":"up"};
   const [data, setData] = useState(init);
   
   async function test()
@@ -20,7 +20,10 @@ function IndexPopup() {
     console.log("ret888...",ret);
     if( ret && ret['message'] == 'done' )
     {
-      alert('测试成功');
+      if( ret['note'] ) 
+        alert(ret['note']);
+      else
+        alert('测试成功');
     }else
     {
       alert('测试失败，请检查填写的信息是否正确');
@@ -90,8 +93,9 @@ function IndexPopup() {
         <input type="text" className="border-1  my-2 p-2 rounded w-full" placeholder="丢失后数据失效，请妥善保管" value={data['password']}  onChange={e=>onChange('password',e)}/>
         <div className="">同步时间间隔·分钟</div>
         <input type="number" className="border-1  my-2 p-2 rounded w-full" placeholder="最少10分钟" value={data['interval']} onChange={e=>onChange('interval',e)} />
-        <div className="">同步域名</div>
-        <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"120px"}} placeholder="一行一个，支持.domain子域名匹配，留空默认同步全部"  onChange={e=>onChange('domains',e)} value={data['domains']}/>
+        {data['type'] && data['type'] == 'up' && <><div className="">同步域名关键词</div>
+        <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"120px"}} placeholder="一行一个，同步包含关键词的全部域名，如qq.com,jd.com会包含全部子域名，留空默认同步全部"  onChange={e=>onChange('domains',e)} value={data['domains']}/>
+        </>}
         <div className="flex flex-row justify-between mt-2">
           <div className="left text-gray-400">
             <Button className="hover:bg-blue-100" onClick={()=>test()}>测试</Button>
