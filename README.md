@@ -22,7 +22,7 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 支持架构：linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
 
 ```bash
-docker run -p=8088:8088 easychen/cookiecloud:lastest
+docker run -p=8088:8088 easychen/cookiecloud:latest
 ```
 默认端口 8088 ，镜像地址 [easychen/cookiecloud](https://hub.docker.com/r/easychen/cookiecloud)
 
