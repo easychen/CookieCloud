@@ -4,6 +4,8 @@
 
 CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览器的登录态同步到手机和云端，它内置端对端加密，可设定同步时间间隔。
 
+> 最新版本支持了对同域名下local storage的同步
+
 ## 商店安装
 
 [Edge商店](https://microsoftedge.microsoft.com/addons/detail/cookiecloud/bffenpfpjikaeocaihdonmgnjjdpjkeo)
@@ -59,17 +61,17 @@ cd api && yarn install && node app.js
 
 ### 加密
 
-const text = JSON.stringify(cookies);
+const data = JSON.stringify(cookies);
 
 1. md5(uuid+password) 取前16位作为key
-2. AES.encrypt(text, the_key)
+2. AES.encrypt(data, the_key)
 
 ### 解密
 
 1. md5(uuid+password) 取前16位作为key
 2. AES.decrypt(encrypted, the_key)
 
-解密后得到 text ，JSON.parse(text) 得到Cookie;
+解密后得到 data ，JSON.parse(data) 得到数据对象{ cookie_data, local_storage_data };
 
 参考函数
 
