@@ -1,10 +1,12 @@
 import CryptoJS from 'crypto-js';
 import { gzip } from 'pako';
+// import browser from 'webextension-polyfill';
+// if( !chrome && browser ) chrome = browser;
 
 export async function storage_set( key, value )
 {
     return new Promise((resolve, reject) => {
-        chrome.storage.sync.set( {[key]:value}, function () {
+        chrome.storage.local.set( {[key]:value}, function () {
           return resolve(true);
         });
       });
@@ -13,12 +15,47 @@ export async function storage_set( key, value )
 export async function storage_get( key )
 {
     return new Promise((resolve, reject) => {
-        chrome.storage.sync.get([key], function (result) {
+        chrome.storage.local.get([key], function (result) {
           if (result[key] === undefined) {
             resolve(null);
           } else {
             resolve(result[key]);
           }
+        });
+      });
+}
+
+export async function storage_remove( key )
+{
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.remove([key], function (result) {
+            resolve(result);
+        });
+      });
+}
+
+
+
+
+export async function load_all(prefix=null)
+{
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.get(null, function (result) {
+            let ret = result;
+            // 只返回以prefix开头的key对应的属性
+            if( prefix )
+            {
+                ret = {};
+                for( let key in result )
+                {
+                    if( key.startsWith(prefix) )
+                    {
+                        // remove prefix from key
+                        ret[key.substring(prefix.length)] = JSON.parse(result[key])??result[key];
+                    }
+                }
+            }
+            resolve(ret);
         });
       });
 }
@@ -33,6 +70,12 @@ export async function load_data( key  )
         return data||[];
     }
 
+}
+
+export async function remove_data( key  )
+{
+    const ret = chrome?.storage ? await storage_remove(key) : window.localStorage.removeItem( key );
+    return ret;
 }
 
 export async function save_data( key, data )
@@ -54,13 +97,15 @@ export async function upload_cookie( payload )
     const domains = payload['domains']?.trim().length > 0 ? payload['domains']?.trim().split("\n") : [];
 
     const cookies = await get_cookie_by_domains( domains );
+    const local_storages = await get_local_storage_by_domains( domains );
     // 用aes对cookie进行加密
     const the_key = CryptoJS.MD5(payload['uuid']+'-'+payload['password']).toString().substring(0,16);
-    const encrypted = CryptoJS.AES.encrypt(JSON.stringify(cookies), the_key).toString();
+    const data_to_encrypt = JSON.stringify({"cookie_data":cookies,"local_storage_data":local_storages});
+    const encrypted = CryptoJS.AES.encrypt(data_to_encrypt, the_key).toString();
     const endpoint = payload['endpoint'].trim().replace(/\/+$/, '')+'/update';
 
     // get sha256 of the encrypted data
-    const sha256 = CryptoJS.SHA256(uuid+"-"+password+"-"+endpoint+"-"+JSON.stringify(cookies)).toString();
+    const sha256 = CryptoJS.SHA256(uuid+"-"+password+"-"+endpoint+"-"+data_to_encrypt).toString();
     console.log( "sha256", sha256 );
     const last_uploaded_info = await load_data( 'LAST_UPLOADED_COOKIE' );
     // 如果24小时内已经上传过同样内容的数据，则不再上传
@@ -110,7 +155,7 @@ export async function download_cookie(payload)
         const result = await response.json();
         if( result && result.encrypted )
         {
-            const cookie_data = cookie_decrypt( uuid, result.encrypted, password );
+            const { cookie_data, local_storage_data } = cookie_decrypt( uuid, result.encrypted, password );
             let action = 'done';
             if(cookie_data)
             {
@@ -137,6 +182,18 @@ export async function download_cookie(payload)
             {
                 action = false;
             }
+
+            console.log("local_storage_data",local_storage_data);
+            if( local_storage_data )
+            {
+                for( let domain in local_storage_data )
+                {
+                    const key = 'LS-'+domain;
+                    await save_data( key, local_storage_data[domain] );
+                    console.log("save local storage", key, local_storage_data[domain] );
+                }
+            }
+
             return {action};
         }
     } catch (error) {
@@ -152,6 +209,27 @@ function cookie_decrypt( uuid, encrypted, password )
     const decrypted = CryptoJS.AES.decrypt(encrypted, the_key).toString(CryptoJS.enc.Utf8);
     const parsed = JSON.parse(decrypted);
     return parsed;
+}
+
+export async function get_local_storage_by_domains( domains = [] )
+{
+    let ret_storage = {};
+    const local_storages = await load_all('LS-');
+    if( Array.isArray(domains) && domains.length > 0 )
+    {
+        for( const domain of domains )
+        {
+            for( const key in local_storages )
+            {
+                if( key.indexOf(domain) >= 0 )
+                {
+                    console.log( "domain 匹配", domain, key );
+                    ret_storage[key] = local_storages[key];
+                }
+            }
+        }
+    }
+    return ret_storage;
 }
 
 async function get_cookie_by_domains( domains = [] )
@@ -205,4 +283,10 @@ function buildUrl(secure, domain, path)
         domain = domain.substr(1);
     }
     return `http${secure ? 's' : ''}://${domain}${path}`;
+}
+
+export function sleep(ms) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
 }

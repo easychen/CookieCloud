@@ -12,18 +12,17 @@ if (!fs.existsSync(data_dir)) fs.mkdirSync(data_dir);
 
 var multer = require('multer');
 var forms = multer({limits: { fieldSize: 100*1024*1024 }});
-const bodyParser = require('body-parser')
-app.use(bodyParser.json());
 app.use(forms.array()); 
+
+const bodyParser = require('body-parser')
+app.use(bodyParser.json({limit : '50mb' }));  
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json({limit : 100*1024*1024 }));  
 
 app.all(`/`, (req, res) => {
     res.send('Hello World!');
 });
 
 app.post(`/update`, (req, res) => {
-    // {"encrypted":"123","uuid":String(short_uid.generate())}
     const { encrypted, uuid } = req.body;
     // none of the fields can be empty
     if (!encrypted || !uuid) {

@@ -10,12 +10,17 @@ import type { RadioChangeEvent } from 'antd';
 import { Radio } from 'antd';
 
 function IndexPopup() {
-  let init: Object={"endpoint":"http://127.0.0.1:8088","password":"123","interval":10,"domains":"","uuid":String(short_uid.generate()),"type":"up"};
+  let init: Object={"endpoint":"http://127.0.0.1:8088","password":"","interval":10,"domains":"","uuid":String(short_uid.generate()),"type":"up","keep_live":""};
   const [data, setData] = useState(init);
   
   async function test()
   {
     // console.log("request,begin");
+    if( !data['endpoint'] || !data['password'] || !data['uuid'] || !data['type'] )
+    {
+      alert('请填写完整的信息');
+      return;
+    }
     const ret = await sendToBackground<RequestBody, ResponseBody>({name:"config",body:{payload:data}});
     console.log("ret888...",ret);
     if( ret && ret['message'] == 'done' )
@@ -32,6 +37,11 @@ function IndexPopup() {
 
   async function save()
   {
+    if( !data['endpoint'] || !data['password'] || !data['uuid'] || !data['type'] )
+    {
+      alert('请填写完整的信息');
+      return;
+    }
     await save_data( "COOKIE_SYNC_SETTING", data );
     const ret = await load_data("COOKIE_SYNC_SETTING") ;
     console.log( "load", ret );
@@ -53,6 +63,11 @@ function IndexPopup() {
     setData({...data,'uuid':String(short_uid.generate())});
   }
 
+  function password_gen()
+  {
+    setData({...data,'password':String(short_uid.generate())});
+  }
+
   useEffect(() => {
     async function load_config()
     {
@@ -62,7 +77,7 @@ function IndexPopup() {
     load_config();
   },[]);
   
-  return <ThemeProvider><div className="w-128" style={{"width":"300px"}}>
+  return <ThemeProvider><div className="w-128" style={{"width":"360px"}}>
     <div className="form p-5">
       <div className="text-line text-gray-600">
         <div className="">工作模式</div>
@@ -74,7 +89,7 @@ function IndexPopup() {
         </div>
 
         {data['type'] && data['type'] == 'down' && <div className="bg-red-600 text-white p-2 my-2 rounded">
-        覆盖模式主要用于云端和只读用的浏览器，Cookie覆盖可能导致当前浏览器的登录和修改操作失效；另外部分网站不允许同一个cookie在多个浏览器同时登录，可能导致其他浏览器上账号退出。
+        覆盖模式主要用于云端和只读用的浏览器，Cookie和Local Storage覆盖可能导致当前浏览器的登录和修改操作失效；另外部分网站不允许同一个cookie在多个浏览器同时登录，可能导致其他浏览器上账号退出。
         </div>}
         
         
@@ -90,15 +105,26 @@ function IndexPopup() {
           </div>
         </div>
         <div className="">端对端加密密码</div>
-        <input type="text" className="border-1  my-2 p-2 rounded w-full" placeholder="丢失后数据失效，请妥善保管" value={data['password']}  onChange={e=>onChange('password',e)}/>
+        <div className="flex flex-row">
+          <div className="left flex-1">
+          <input type="text" className="border-1  my-2 p-2 rounded w-full" placeholder="丢失后数据失效，请妥善保管" value={data['password']}  onChange={e=>onChange('password',e)}/>
+          </div>
+          <div className="right">
+          <button className="p-2 rounded my-2 ml-2" onClick={()=>password_gen()}>自动生成</button>
+          </div>
+        </div>
         <div className="">同步时间间隔·分钟</div>
         <input type="number" className="border-1  my-2 p-2 rounded w-full" placeholder="最少10分钟" value={data['interval']} onChange={e=>onChange('interval',e)} />
-        {data['type'] && data['type'] == 'up' && <><div className="">同步域名关键词</div>
-        <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"120px"}} placeholder="一行一个，同步包含关键词的全部域名，如qq.com,jd.com会包含全部子域名，留空默认同步全部"  onChange={e=>onChange('domains',e)} value={data['domains']}/>
+        {data['type'] && data['type'] == 'up' && <>
+        <div className="">同步域名关键词·选填</div>
+        <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder="一行一个，同步包含关键词的全部域名，如qq.com,jd.com会包含全部子域名，留空默认同步全部"  onChange={e=>onChange('domains',e)} value={data['domains']}/>
+        <div className="">Cookie保活·选填</div>
+        <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder="定时后台刷新URL，模拟用户活跃。一行一个URL，默认60分钟，可用 URL|分钟数 的方式指定刷新时间"  onChange={e=>onChange('keep_live',e)} value={data['keep_live']}/>
         </>}
         <div className="flex flex-row justify-between mt-2">
           <div className="left text-gray-400">
             <Button className="hover:bg-blue-100" onClick={()=>test()}>测试</Button>
+
           </div>
           <div className="right">
             <Button className="" onClick={()=>save()}>保存</Button>

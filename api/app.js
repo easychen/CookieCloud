@@ -23,7 +23,6 @@ app.all(`/`, (req, res) => {
 });
 
 app.post(`/update`, (req, res) => {
-    // {"encrypted":"123","uuid":String(short_uid.generate())}
     const { encrypted, uuid } = req.body;
     // none of the fields can be empty
     if (!encrypted || !uuid) {
