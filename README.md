@@ -29,6 +29,8 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 > 由第三方提供的免费服务器端，可供试用，稳定性由第三方决定。感谢他们的分享 👏
 
 - 45.138.70.177:8088 由`LSRNB`提供
+- 45.145.231.148:8088 由`shellingford37`提供
+- nastool.cn:8088 由[nastools](https://github.com/jxxghp/nas-tools)提供
 
 ## 自架服务器端
 
@@ -40,6 +42,12 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 docker run -p=8088:8088 easychen/cookiecloud:latest
 ```
 默认端口 8088 ，镜像地址 [easychen/cookiecloud](https://hub.docker.com/r/easychen/cookiecloud)
+
+添加环境变量 -e API_ROOT=/`二级目录需要以斜杠开头` 可以指定二级目录:
+
+```bash
+docker run -e API_ROOT=/cookie -p=8088:8088 easychen/cookiecloud:latest
+```
 
 
 ### node部署
