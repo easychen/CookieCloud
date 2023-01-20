@@ -8,6 +8,13 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 
 [Telegram频道](https://t.me/CookieCloudTG) | [Telegram交流群](https://t.me/CookieCloudGroup)
 
+## ⚠️ Breaking Change
+
+由于支持 local storage 的呼声很高，因此插件版本 0.1.5+ 除了 cookie 也支持了 local storage，这导致加密文本格式变化（从独立cookie对象变成{ cookie_data, local_storage_data }）。
+
+另外，为避免配置同步导致的上下行冲突，配置存储从 remote 改到了 local，使用之前版本的同学需要重新配置一下。
+
+对此带来的不便深表歉意 🙇🏻‍♂️
 
 ## 商店安装
 
@@ -22,7 +29,6 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 > 由第三方提供的免费服务器端，可供试用，稳定性由第三方决定。感谢他们的分享 👏
 
 - 45.138.70.177:8088 由`LSRNB`提供
-- 45.145.231.148:8088 由`shellingford37`提供
 
 ## 自架服务器端
 
