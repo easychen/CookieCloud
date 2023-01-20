@@ -6,6 +6,9 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 
 > 最新版本支持了对同域名下local storage的同步
 
+[Telegram频道](https://t.me/CookieCloudTG) | [Telegram交流群](https://t.me/CookieCloudGroup)
+
+
 ## 商店安装
 
 [Edge商店](https://microsoftedge.microsoft.com/addons/detail/cookiecloud/bffenpfpjikaeocaihdonmgnjjdpjkeo)
