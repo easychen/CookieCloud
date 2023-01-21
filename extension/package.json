@@ -2,7 +2,7 @@
   "name": "cookie-cloud",
   "displayName": "CookieCloud",
   "description": "__MSG_appDesc__",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "default_locale": "zh_CN",
   "author": "easychen@gmail.com",
   "license": "GPLv3",
@@ -40,7 +40,7 @@
     "name": "__MSG_appTitle__",
     "default_locale": "zh_CN",
     "host_permissions": [
-      "https://*/*"
+      "<all_urls>"
     ],
     "permissions": [
       "cookies",

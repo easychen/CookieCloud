@@ -16,6 +16,14 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 
 对此带来的不便深表歉意 🙇🏻‍♂️
 
+## FAQ
+
+1. 目前只支持单向同步，即一个浏览器上传，一个浏览器下载
+2. 浏览器扩展只官方支持 Chrome 和 Edge。其他 Chrome 内核浏览器可用，但未经测试。使用源码 `cd extension && pnpm build --target=firefox-mv2` 可自行编译 Firefox 版本，注意 Firefox 的 Cookie 格式和 Chrome 系有差异，不能混用
+
+![](images/20230121092535.png)  
+
+
 ## 商店安装
 
 [Edge商店](https://microsoftedge.microsoft.com/addons/detail/cookiecloud/bffenpfpjikaeocaihdonmgnjjdpjkeo)

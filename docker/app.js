@@ -18,11 +18,14 @@ const bodyParser = require('body-parser')
 app.use(bodyParser.json({limit : '50mb' }));  
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.all(`/`, (req, res) => {
-    res.send('Hello World!');
+const api_root = process.env.API_ROOT ? process.env.API_ROOT.trim().replace(/\/+$/, '') : '';
+// console.log(api_root, process.env);
+
+app.all(`${api_root}/`, (req, res) => {
+    res.send('Hello World!'+`API ROOT = ${api_root}`);
 });
 
-app.post(`/update`, (req, res) => {
+app.post(`${api_root}/update`, (req, res) => {
     const { encrypted, uuid } = req.body;
     // none of the fields can be empty
     if (!encrypted || !uuid) {
@@ -40,7 +43,7 @@ app.post(`/update`, (req, res) => {
         res.json({"action":"error"});
 });
 
-app.all(`/get/:uuid`, (req, res) => {
+app.all(`${api_root}/get/:uuid`, (req, res) => {
     const { uuid } = req.params;
     // none of the fields can be empty
     if (!uuid) {
@@ -82,7 +85,7 @@ app.use(function (err, req, res, next) {
 
 const port = 8088;
 app.listen(port, () => {
-    console.log(`Server start on http://localhost:${port}`);
+    console.log(`Server start on http://localhost:${port}${api_root}`);
 });
 
 function cookie_decrypt( uuid, encrypted, password )

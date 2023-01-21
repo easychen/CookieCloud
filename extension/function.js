@@ -1,7 +1,37 @@
 import CryptoJS from 'crypto-js';
 import { gzip } from 'pako';
-// import browser from 'webextension-polyfill';
-// if( !chrome && browser ) chrome = browser;
+import browser from 'webextension-polyfill';
+
+function is_firefox()
+{
+    return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+}
+
+function is_safari()
+{
+    return navigator.userAgent.toLowerCase().indexOf('safari') > -1;
+}
+
+export async function browser_set( key, value )
+{
+    return await browser.storage.local.set( {[key]:value});
+}
+
+export async function browser_get( key )
+{
+    const result = await browser.storage.local.get( key );
+    if (result[key] === undefined) return null;
+    else return result[key];
+}
+
+export async function browser_remove( key )
+{
+    return await browser.storage.local.remove( key );
+}
+
+
+
+
 
 export async function storage_set( key, value )
 {
@@ -34,6 +64,26 @@ export async function storage_remove( key )
       });
 }
 
+export async function browser_load_all(prefix=null)
+{
+    const result = await browser.storage.local.get(null);
+    let ret = result;
+    // 只返回以prefix开头的key对应的属性
+    if( prefix )
+    {
+        ret = {};
+        for( let key in result )
+        {
+            if( key.startsWith(prefix) )
+            {
+                // remove prefix from key
+                ret[key.substring(prefix.length)] = JSON.parse(result[key])??result[key];
+            }
+        }
+    }
+    return ret;
+}
+
 
 
 
@@ -62,7 +112,7 @@ export async function load_all(prefix=null)
 
 export async function load_data( key  )
 {
-    const data = chrome?.storage ? await storage_get(key) : window.localStorage.getItem( key );
+    const data = browser?.storage ? await browser_get(key) : window.localStorage.getItem( key );
     // console.log("load",key,data);
     try {
         return JSON.parse(data);
@@ -74,14 +124,14 @@ export async function load_data( key  )
 
 export async function remove_data( key  )
 {
-    const ret = chrome?.storage ? await storage_remove(key) : window.localStorage.removeItem( key );
+    const ret = browser?.storage ? await browser_remove(key) : window.localStorage.removeItem( key );
     return ret;
 }
 
 export async function save_data( key, data )
 {
     // chrome.storage.local.set({key:JSON.stringify(data)});
-    const ret = chrome?.storage ? await storage_set( key, JSON.stringify(data) )  : window.localStorage.setItem( key, JSON.stringify(data) );
+    const ret = browser?.storage ? await browser_set( key, JSON.stringify(data) )  : window.localStorage.setItem( key, JSON.stringify(data) );
     return ret;
 }
 
@@ -168,13 +218,26 @@ export async function download_cookie(payload)
                         {
                             let new_cookie = {};
                             ['name','value','domain','path','secure','httpOnly','sameSite'].forEach( key => {
-                                new_cookie[key] = cookie[key];
+                                if( key == 'sameSite' && cookie[key].toLowerCase() == 'unspecified' && is_firefox() )
+                                {
+                                    // firefox 下 unspecified 会导致cookie无法设置
+                                    // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/cookies/SameSiteStatus
+                                    new_cookie['sameSite'] = 'no_restriction';
+                                }else
+                                {
+                                    new_cookie[key] = cookie[key];
+                                }
                             } );
                             new_cookie.url = buildUrl(cookie.secure, cookie.domain, cookie.path);
-                            // console.log(new_cookie);
-                            chrome.cookies.set(new_cookie, (e)=>{
-                               console.log("set cookie", e);
-                            });
+                            console.log( "new cookie", new_cookie);
+                            try {
+                                const set_ret = await browser.cookies.set(new_cookie);
+                                    console.log("set cookie", set_ret);
+                            } catch (error) {
+                                console.log("set cookie error", error);
+                            }
+                            
+                            
                         }
                     }
                 }
@@ -214,7 +277,7 @@ function cookie_decrypt( uuid, encrypted, password )
 export async function get_local_storage_by_domains( domains = [] )
 {
     let ret_storage = {};
-    const local_storages = await load_all('LS-');
+    const local_storages = await browser_load_all('LS-');
     if( Array.isArray(domains) && domains.length > 0 )
     {
         for( const domain of domains )
@@ -236,18 +299,19 @@ async function get_cookie_by_domains( domains = [] )
 {
     let ret_cookies = {};
     // 获取cookie
-    if( chrome.cookies )
+    if( browser.cookies )
     {
-        const cookies = await chrome.cookies.getAll({});
+        const cookies = await browser.cookies.getAll({});
         // console.log("cookies", cookies);
         if( Array.isArray(domains) && domains.length > 0 )
         {
+            console.log("domains", domains);
             for( const domain of domains )
             {
                 ret_cookies[domain] = [];
                 for( const cookie of cookies )
                 {
-                    if( cookie.domain?.indexOf(domain) >= 0 || domain.indexOf(cookie.domain) >= 0 )
+                    if( cookie.domain?.includes(domain) )
                     {
                         ret_cookies[domain].push( cookie );
                     }
@@ -256,7 +320,7 @@ async function get_cookie_by_domains( domains = [] )
         }
         else
         {
-            // console.log("domains为空");
+            console.log("domains为空");
             for( const cookie of cookies )
             {
                 // console.log("the cookie", cookie);

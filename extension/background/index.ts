@@ -1,14 +1,15 @@
 import "@plasmohq/messaging/background";
 import { upload_cookie, download_cookie, load_data, save_data, sleep } from '../function';
+import browser from 'webextension-polyfill';
 
 export const life = 42
 console.log(`HELLO WORLD - ${life}`)
 
-chrome.runtime.onInstalled.addListener(function (details)
+browser.runtime.onInstalled.addListener(function (details)
 {
     if (details.reason == "install")
     {
-        chrome.alarms.create('bg_1_minute', 
+        browser.alarms.create('bg_1_minute', 
         {
             when: Date.now(),
             periodInMinutes: 1
@@ -16,7 +17,7 @@ chrome.runtime.onInstalled.addListener(function (details)
     }
     else if (details.reason == "update")
     {
-        chrome.alarms.create('bg_1_minute', 
+        browser.alarms.create('bg_1_minute', 
         {
             when: Date.now(),
             periodInMinutes: 1
@@ -26,7 +27,7 @@ chrome.runtime.onInstalled.addListener(function (details)
 
 
 
-chrome.alarms.onAlarm.addListener( async a =>
+browser.alarms.onAlarm.addListener( async a =>
 {
     if( a.name == 'bg_1_minute' )
     {
@@ -85,11 +86,33 @@ chrome.alarms.onAlarm.addListener( async a =>
                     {
                         // 开始访问
                         console.log(`keep live ${url} ${minute_count} ${interval}`);
+                        
+                        // 查询是否已经打开目标页面，如果已经打开，则不再打开
+                        // 除了没有必要以外，还能避免因为网络延迟导致的重复打开
+                        const [exists_tab] = await browser.tabs.query({"url":`${url.trim().replace(/\/+$/, '')}/*`});
+                        if( exists_tab && exists_tab.id )
+                        {
+                            console.log(`tab已存在 ${exists_tab.id}`,exists_tab);
+                            if( !exists_tab.active )
+                            {
+                                // refresh tab
+                                console.log(`后台状态，刷新页面`);   
+                                await browser.tabs.reload(exists_tab.id);
+                            }else
+                            {
+                                console.log(`前台状态，跳过`);   
+                            }
+                            return true;
+                        }else
+                        {
+                            console.log(`tab不存在，后台打开`);
+                        }
+
                         // chrome tab create 
-                        const tab = await chrome.tabs.create({"url":url,"active":false,"pinned":true});
+                        const tab = await browser.tabs.create({"url":url,"active":false,"pinned":true});
                         // 等待五秒后关闭
                         await sleep(5000);
-                        await chrome.tabs.remove(tab.id);
+                        await browser.tabs.remove(tab.id);
                     }
                 }
             }

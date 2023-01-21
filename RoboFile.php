@@ -11,6 +11,11 @@ class RoboFile extends \Robo\Tasks
         $this->_exec("cd api && node_modules/nodemon/bin/nodemon.js app.js");
     }
 
+    public function api()
+    {
+        $this->_exec("cd api && API_ROOT=/cookie node app.js");
+    }
+
     public function imagePub($uniqid = null)
     {
         if ($uniqid == null) {
@@ -27,5 +32,20 @@ class RoboFile extends \Robo\Tasks
     public function extBuild()
     {
         $this->_exec("cd extension && pnpm build && pnpm package");
+    }
+
+    public function firefoxBuild()
+    {
+        $this->_exec("cd extension && pnpm build --target=firefox-mv2 && pnpm package --target=firefox-mv2");
+    }
+
+    public function firefoxDev()
+    {
+        $this->_exec("cd extension && pnpm dev --target=firefox-mv2");
+    }
+
+    public function extDev()
+    {
+        $this->_exec("cd extension && pnpm dev");
     }
 }

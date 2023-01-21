@@ -77,7 +77,7 @@ function IndexPopup() {
     load_config();
   },[]);
   
-  return <ThemeProvider><div className="w-128" style={{"width":"360px"}}>
+  return <ThemeProvider><div className="w-128 overflow-x-hidden" style={{"width":"360px"}}>
     <div className="form p-5">
       <div className="text-line text-gray-600">
         <div className="">工作模式</div>
