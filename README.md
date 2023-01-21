@@ -44,7 +44,7 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 
 ## 自架服务器端
 
-### Docker部署
+### 方案一：通过Docker部署，简单、推荐方案
 
 支持架构：linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
 
@@ -53,19 +53,31 @@ docker run -p=8088:8088 easychen/cookiecloud:latest
 ```
 默认端口 8088 ，镜像地址 [easychen/cookiecloud](https://hub.docker.com/r/easychen/cookiecloud)
 
+#### 指定API目录·可选步骤可跳过
+
 添加环境变量 -e API_ROOT=/`二级目录需要以斜杠开头` 可以指定二级目录:
 
 ```bash
 docker run -e API_ROOT=/cookie -p=8088:8088 easychen/cookiecloud:latest
 ```
 
+### 方案二：通过 Node 部署
 
-### node部署
+> 适用于没有 docker 但支持 node 的环境，需要自行先安装 node
 
 ```bash
 cd api && yarn install && node app.js
 ```
-默认端口 8088 
+默认端口 8088 ，同样也支持 API_ROOT 环境变量
+
+## 调试和日志查看
+
+进入浏览器插件列表，点击 service worker，会弹出一个面板，可查看运行日志
+
+![](images/20230121095327.png)  
+
+
+
 
 ## API 接口
 
