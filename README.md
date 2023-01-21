@@ -26,7 +26,7 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 
 ## 浏览器插件
 
-1. 商店安装：[Edge商店](https://microsoftedge.microsoft.com/addons/detail/cookiecloud/bffenpfpjikaeocaihdonmgnjjdpjkeo) 因审核会有版本延迟
+1. 商店安装：[Edge商店](https://microsoftedge.microsoft.com/addons/detail/cookiecloud/bffenpfpjikaeocaihdonmgnjjdpjkeo)  Chrome商店审核中 （ 注意：商店版本会因审核有延迟
 1. 手动下载安装：见 Release
 
 ## 服务器端
@@ -37,9 +37,9 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 
 > 由于部分服务器端版本较久，如测试提示失败可添加域名关键词再试
 
-- 45.138.70.177:8088 由`LSRNB`提供
-- 45.145.231.148:8088 由`shellingford37`提供
-- nastool.cn:8088 由[nastools](https://github.com/jxxghp/nas-tools)提供
+- <http://45.138.70.177:8088> 由`LSRNB`提供
+- <http://45.145.231.148:8088> 由`shellingford37`提供
+- <http://nastool.cn:8088> 由[nastools](https://github.com/jxxghp/nas-tools)提供
 
 ### 自行架设
 
