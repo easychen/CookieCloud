@@ -24,15 +24,14 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 ![](images/20230121092535.png)  
 
 
-## 商店安装
+## 浏览器插件
 
-[Edge商店](https://microsoftedge.microsoft.com/addons/detail/cookiecloud/bffenpfpjikaeocaihdonmgnjjdpjkeo)
+1. 商店安装：[Edge商店](https://microsoftedge.microsoft.com/addons/detail/cookiecloud/bffenpfpjikaeocaihdonmgnjjdpjkeo) 因审核会有版本延迟
+1. 手动下载安装：见 Release
 
-## 浏览器插件下载
+## 服务器端
 
-见 Release
-
-## 第三方服务器端
+### 第三方
 
 > 由第三方提供的免费服务器端，可供试用，稳定性由第三方决定。感谢他们的分享 👏
 
@@ -42,9 +41,9 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 - 45.145.231.148:8088 由`shellingford37`提供
 - nastool.cn:8088 由[nastools](https://github.com/jxxghp/nas-tools)提供
 
-## 自架服务器端
+### 自行架设
 
-### 方案一：通过Docker部署，简单、推荐方案
+#### 方案一：通过Docker部署，简单、推荐方案
 
 支持架构：linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
 
@@ -53,7 +52,7 @@ docker run -p=8088:8088 easychen/cookiecloud:latest
 ```
 默认端口 8088 ，镜像地址 [easychen/cookiecloud](https://hub.docker.com/r/easychen/cookiecloud)
 
-#### 指定API目录·可选步骤可跳过
+##### 指定API目录·可选步骤可跳过
 
 添加环境变量 -e API_ROOT=/`二级目录需要以斜杠开头` 可以指定二级目录:
 
@@ -61,7 +60,7 @@ docker run -p=8088:8088 easychen/cookiecloud:latest
 docker run -e API_ROOT=/cookie -p=8088:8088 easychen/cookiecloud:latest
 ```
 
-### 方案二：通过 Node 部署
+#### 方案二：通过 Node 部署
 
 > 适用于没有 docker 但支持 node 的环境，需要自行先安装 node
 
