@@ -21,7 +21,7 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 
 ![](images/20230121141854.png)  
 
-1. 视频教程：[B站](https://www.bilibili.com/video/BV1fR4y1a7zb) [Youtube](https://youtu.be/3oeSiGHXeQw) 求关注求订阅🥺
+1. 视频教程：[B站](https://www.bilibili.com/video/BV1fR4y1a7zb) | [Youtube](https://youtu.be/3oeSiGHXeQw) 求关注求订阅🥺
 1. 图文教程：[掘金](https://juejin.cn/post/7190963442017108027)
 
 ## FAQ
@@ -33,7 +33,7 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 
 ## 浏览器插件
 
-1. 商店安装：[Edge商店](https://microsoftedge.microsoft.com/addons/detail/cookiecloud/bffenpfpjikaeocaihdonmgnjjdpjkeo)  Chrome商店审核中 （ 注意：商店版本会因审核有延迟
+1. 商店安装：[Edge商店](https://microsoftedge.microsoft.com/addons/detail/cookiecloud/bffenpfpjikaeocaihdonmgnjjdpjkeo) | [Chrome商店](https://chrome.google.com/webstore/detail/cookiecloud/ffjiejobkoibkjlhjnlgmcnnigeelbdl)（ 注意：商店版本会因审核有延迟
 1. 手动下载安装：见 Release
 
 ## 服务器端
