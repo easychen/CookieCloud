@@ -1,0 +1,14 @@
+{
+  "name": "playwright",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.29.2"
+  },
+  "scripts": {},
+  "dependencies": {
+    "cross-fetch": "^3.1.5",
+    "crypto-js": "^4.1.1"
+  }
+}
