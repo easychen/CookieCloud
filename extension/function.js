@@ -159,7 +159,7 @@ export async function upload_cookie( payload )
     console.log( "sha256", sha256 );
     const last_uploaded_info = await load_data( 'LAST_UPLOADED_COOKIE' );
     // 如果24小时内已经上传过同样内容的数据，则不再上传
-    if( last_uploaded_info && last_uploaded_info.sha256 === sha256 && new Date().getTime() - last_uploaded_info.timestamp < 1000*60*60*24 )
+    if( ( !payload['no_cache'] || parseInt(payload['no_cache']) < 1 ) && last_uploaded_info && last_uploaded_info.sha256 === sha256 && new Date().getTime() - last_uploaded_info.timestamp < 1000*60*60*24 )
     {
         console.log("same data in 24 hours, skip1");
         return {action:'done',note:'本地Cookie数据无变动，不再上传'};

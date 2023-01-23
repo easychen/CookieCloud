@@ -13,25 +13,30 @@ function IndexPopup() {
   let init: Object={"endpoint":"http://127.0.0.1:8088","password":"","interval":10,"domains":"","uuid":String(short_uid.generate()),"type":"up","keep_live":""};
   const [data, setData] = useState(init);
   
-  async function test()
+  async function test(action='测试')
   {
-    // console.log("request,begin");
+    console.log("request,begin");
     if( !data['endpoint'] || !data['password'] || !data['uuid'] || !data['type'] )
     {
       alert('请填写完整的信息');
       return;
     }
-    const ret = await sendToBackground<RequestBody, ResponseBody>({name:"config",body:{payload:data}});
-    console.log("ret888...",ret);
+    if( data['type'] == 'pause' )
+    {
+      alert('暂停状态不能'+action);
+      return;
+    }
+    const ret = await sendToBackground<RequestBody, ResponseBody>({name:"config",body:{payload:{...data,no_cache:1}}});
+    console.log(action+"返回",ret);
     if( ret && ret['message'] == 'done' )
     {
       if( ret['note'] ) 
         alert(ret['note']);
       else
-        alert('测试成功');
+        alert(action+'成功');
     }else
     {
-      alert('测试失败，请检查填写的信息是否正确');
+      alert(action+'失败，请检查填写的信息是否正确');
     }
   }
 
@@ -85,6 +90,7 @@ function IndexPopup() {
         <Radio.Group onChange={e=>onChange('type',e)} value={data['type']}>
           <Radio value={'up'}>上传到服务器</Radio>
           <Radio value={'down'}>覆盖到浏览器</Radio>
+          <Radio value={'pause'}>暂停</Radio>
         </Radio.Group>
         </div>
 
@@ -92,7 +98,7 @@ function IndexPopup() {
         覆盖模式主要用于云端和只读用的浏览器，Cookie和Local Storage覆盖可能导致当前浏览器的登录和修改操作失效；另外部分网站不允许同一个cookie在多个浏览器同时登录，可能导致其他浏览器上账号退出。
         </div>}
         
-        
+        {data['type'] && data['type'] != 'pause' && <>
         <div className="">服务器地址</div>
         <input type="text" className="border-1  my-2 p-2 rounded w-full" placeholder="请输入服务器地址" value={data['endpoint']} onChange={e=>onChange('endpoint',e)} />
         <div className="">用户KEY</div>
@@ -121,9 +127,14 @@ function IndexPopup() {
         <div className="">Cookie保活·选填</div>
         <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder="定时后台刷新URL，模拟用户活跃。一行一个URL，默认60分钟，可用 URL|分钟数 的方式指定刷新时间"  onChange={e=>onChange('keep_live',e)} value={data['keep_live']}/>
         </>}
+        </>}
+
+        {data['type'] && data['type'] == 'pause' && <>
+        <div className="bg-blue-400 text-white p-2 my-2 rounded">暂停同步和保活</div>
+        </>}
         <div className="flex flex-row justify-between mt-2">
           <div className="left text-gray-400">
-            <Button className="hover:bg-blue-100" onClick={()=>test()}>测试</Button>
+            {data['type'] && data['type'] != 'pause' && <><Button className="hover:bg-blue-100 mr-2" onClick={()=>test('手动同步')}>手动同步</Button><Button className="hover:bg-blue-100" onClick={()=>test('测试')}>测试</Button></>}
 
           </div>
           <div className="right">

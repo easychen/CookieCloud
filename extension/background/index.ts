@@ -35,6 +35,12 @@ browser.alarms.onAlarm.addListener( async a =>
         const config = await load_data("COOKIE_SYNC_SETTING") ;
         if( config )
         {
+            if( config.type && config.type == 'pause')
+            {
+                console.log("暂停模式，不同步");
+                return true;
+            }
+            
             // 获得当前的分钟数
             const now = new Date();
             const minute = now.getMinutes();

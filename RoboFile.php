@@ -48,4 +48,5 @@ class RoboFile extends \Robo\Tasks
     {
         $this->_exec("cd extension && pnpm dev");
     }
+
 }
