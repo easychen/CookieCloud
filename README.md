@@ -48,6 +48,7 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 - <http://45.145.231.148:8088> 由[shellingford37](https://github.com/shellingford37)提供
 - <http://nastool.cn:8088> 由[nastools](https://github.com/jxxghp/nas-tools)提供
 - <https://cookies.xm.mk> 由[Xm798](https://github.com/Xm798)提供
+- <https://cookie.xy213.cn> 由[xuyan0213](https://github.com/xuyan0213)提供
 
 ### 自行架设
 
