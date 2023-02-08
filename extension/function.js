@@ -146,8 +146,13 @@ export async function upload_cookie( payload )
     }
     const domains = payload['domains']?.trim().length > 0 ? payload['domains']?.trim().split("\n") : [];
 
-    const cookies = await get_cookie_by_domains( domains );
-    const local_storages = await get_local_storage_by_domains( domains );
+    const blacklist = payload['blacklist']?.trim().length > 0 ? payload['blacklist']?.trim().split("\n") : [];
+
+    const cookies = await get_cookie_by_domains( domains, blacklist );
+    const with_storage = payload['with_storage'] || 0;
+    const local_storages = with_storage ? await get_local_storage_by_domains( domains ) : {};
+    
+    
     // 用aes对cookie进行加密
     const the_key = CryptoJS.MD5(payload['uuid']+'-'+payload['password']).toString().substring(0,16);
     const data_to_encrypt = JSON.stringify({"cookie_data":cookies,"local_storage_data":local_storages});
@@ -295,7 +300,7 @@ export async function get_local_storage_by_domains( domains = [] )
     return ret_storage;
 }
 
-async function get_cookie_by_domains( domains = [] )
+async function get_cookie_by_domains( domains = [], blacklist = [] )
 {
     let ret_cookies = {};
     // 获取cookie
@@ -326,11 +331,25 @@ async function get_cookie_by_domains( domains = [] )
                 // console.log("the cookie", cookie);
                 if( cookie.domain )
                 {
-                    if( !ret_cookies[cookie.domain] )
+                    
+                    let in_blacklist = false;
+                    for( const black of blacklist )
                     {
-                        ret_cookies[cookie.domain] = [];
+                        if( cookie.domain.includes(black) )
+                        {
+                            console.log("blacklist 匹配", cookie.domain, black);
+                            in_blacklist = true;
+                        }
                     }
-                    ret_cookies[cookie.domain].push( cookie );
+
+                    if( !in_blacklist )
+                    {
+                        if( !ret_cookies[cookie.domain] )
+                        {
+                            ret_cookies[cookie.domain] = [];
+                        }
+                        ret_cookies[cookie.domain].push( cookie );
+                    }
                 }
                 
             }

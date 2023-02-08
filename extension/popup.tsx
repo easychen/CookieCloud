@@ -10,7 +10,7 @@ import type { RadioChangeEvent } from 'antd';
 import { Radio } from 'antd';
 
 function IndexPopup() {
-  let init: Object={"endpoint":"http://127.0.0.1:8088","password":"","interval":10,"domains":"","uuid":String(short_uid.generate()),"type":"up","keep_live":""};
+  let init: Object={"endpoint":"http://127.0.0.1:8088","password":"","interval":10,"domains":"","uuid":String(short_uid.generate()),"type":"up","keep_live":"","with_storage":1,"blacklist":"google.com"};
   const [data, setData] = useState(init);
   
   async function test(action='测试')
@@ -121,9 +121,24 @@ function IndexPopup() {
         </div>
         <div className="">同步时间间隔·分钟</div>
         <input type="number" className="border-1  my-2 p-2 rounded w-full" placeholder="最少10分钟" value={data['interval']} onChange={e=>onChange('interval',e)} />
+
         {data['type'] && data['type'] == 'up' && <>
+        <div className="">是否同步Local Storage</div>
+        <div className="my-2">
+        <Radio.Group onChange={e=>onChange('with_storage',e)} value={data['with_storage']}>
+          <Radio value={1}>是</Radio>
+          <Radio value={0}>否</Radio>
+        </Radio.Group>
+        </div>
+        
         <div className="">同步域名关键词·选填</div>
         <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder="一行一个，同步包含关键词的全部域名，如qq.com,jd.com会包含全部子域名，留空默认同步全部"  onChange={e=>onChange('domains',e)} value={data['domains']}/>
+
+        <div className="">同步域名黑名单·选填</div>
+        <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder="黑名单仅在同步域名关键词为空时生效。一行一个域名，匹配则不参与同步"  onChange={e=>onChange('blacklist',e)} value={data['blacklist']}/>
+
+
+
         <div className="">Cookie保活·选填</div>
         <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder="定时后台刷新URL，模拟用户活跃。一行一个URL，默认60分钟，可用 URL|分钟数 的方式指定刷新时间"  onChange={e=>onChange('keep_live',e)} value={data['keep_live']}/>
         </>}
