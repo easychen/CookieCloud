@@ -151,8 +151,25 @@ export async function upload_cookie( payload )
     const cookies = await get_cookie_by_domains( domains, blacklist );
     const with_storage = payload['with_storage'] || 0;
     const local_storages = with_storage ? await get_local_storage_by_domains( domains ) : {};
-    
-    
+
+    let headers = { 'Content-Type': 'application/json', 'Content-Encoding': 'gzip' }
+    // 添加鉴权的 header
+    try {
+        if (payload['headers']?.trim().length > 0) {
+            let extraHeaderPairs = payload['headers']?.trim().split("\n");
+            extraHeaderPairs.forEach((extraHeaderPair, index) => {
+                let extraHeaderPairKV = String(extraHeaderPair).split(":");
+                if (extraHeaderPairKV?.length > 1) {
+                    headers[extraHeaderPairKV[0]] = extraHeaderPairKV[1];
+                } else {
+                    console.log("error", "解析 header 错误: ", extraHeaderPair);
+                }
+            })
+        }
+    } catch (error) {
+        console.log("error", error);
+        return false;
+    } 
     // 用aes对cookie进行加密
     const the_key = CryptoJS.MD5(payload['uuid']+'-'+payload['password']).toString().substring(0,16);
     const data_to_encrypt = JSON.stringify({"cookie_data":cookies,"local_storage_data":local_storages});
@@ -178,10 +195,7 @@ export async function upload_cookie( payload )
     try {
         const response = await fetch(endpoint, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Content-Encoding': 'gzip',
-            },
+            headers: headers,
             body: gzip(JSON.stringify(payload2))
         });
         const result = await response.json();

@@ -10,7 +10,7 @@ import type { RadioChangeEvent } from 'antd';
 import { Radio } from 'antd';
 
 function IndexPopup() {
-  let init: Object={"endpoint":"http://127.0.0.1:8088","password":"","interval":10,"domains":"","uuid":String(short_uid.generate()),"type":"up","keep_live":"","with_storage":1,"blacklist":"google.com"};
+  let init: Object={"endpoint":"http://127.0.0.1:8088","password":"","interval":10,"domains":"","uuid":String(short_uid.generate()),"type":"up","keep_live":"","with_storage":1,"blacklist":"google.com", "headers": ""};
   const [data, setData] = useState(init);
   
   async function test(action='测试')
@@ -130,7 +130,10 @@ function IndexPopup() {
           <Radio value={0}>否</Radio>
         </Radio.Group>
         </div>
-        
+
+        <div className="">请求Header·选填</div>
+        <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder="在请求时追加Header，用于服务端鉴权等场景，一行一个，格式为'Key:Value'，不能有空格"  onChange={e=>onChange('headers',e)} value={data['headers']}/>
+
         <div className="">同步域名关键词·选填</div>
         <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder="一行一个，同步包含关键词的全部域名，如qq.com,jd.com会包含全部子域名，留空默认同步全部"  onChange={e=>onChange('domains',e)} value={data['domains']}/>
 
