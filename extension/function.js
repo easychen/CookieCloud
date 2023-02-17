@@ -142,6 +142,7 @@ export async function upload_cookie( payload )
     // none of the fields can be empty
     if (!password || !uuid) {
         alert("错误的参数");
+        showBadge("err");
         return false;
     }
     const domains = payload['domains']?.trim().length > 0 ? payload['domains']?.trim().split("\n") : [];
@@ -151,8 +152,27 @@ export async function upload_cookie( payload )
     const cookies = await get_cookie_by_domains( domains, blacklist );
     const with_storage = payload['with_storage'] || 0;
     const local_storages = with_storage ? await get_local_storage_by_domains( domains ) : {};
-    
-    
+
+    let headers = { 'Content-Type': 'application/json', 'Content-Encoding': 'gzip' }
+    // 添加鉴权的 header
+    try {
+        if (payload['headers']?.trim().length > 0) {
+            let extraHeaderPairs = payload['headers']?.trim().split("\n");
+            extraHeaderPairs.forEach((extraHeaderPair, index) => {
+                let extraHeaderPairKV = String(extraHeaderPair).split(":");
+                if (extraHeaderPairKV?.length > 1) {
+                    headers[extraHeaderPairKV[0]] = extraHeaderPairKV[1];
+                } else {
+                    console.log("error", "解析 header 错误: ", extraHeaderPair);
+                    showBadge("fail", "orange");
+                }
+            })
+        }
+    } catch (error) {
+        console.log("error", error);
+        showBadge("err");
+        return false;
+    } 
     // 用aes对cookie进行加密
     const the_key = CryptoJS.MD5(payload['uuid']+'-'+payload['password']).toString().substring(0,16);
     const data_to_encrypt = JSON.stringify({"cookie_data":cookies,"local_storage_data":local_storages});
@@ -176,12 +196,10 @@ export async function upload_cookie( payload )
     };
     // console.log( endpoint, payload2 );
     try {
+        showBadge("↑", "green");
         const response = await fetch(endpoint, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Content-Encoding': 'gzip',
-            },
+            headers: headers,
             body: gzip(JSON.stringify(payload2))
         });
         const result = await response.json();
@@ -192,6 +210,7 @@ export async function upload_cookie( payload )
         return result;
     } catch (error) {
         console.log("error", error);
+        showBadge("err");
         return false;
     }  
 }
@@ -201,6 +220,7 @@ export async function download_cookie(payload)
     const { uuid, password } = payload;
     const endpoint = payload['endpoint'].trim().replace(/\/+$/, '')+'/get/'+uuid;
     try {
+        showBadge("↓", "blue");
         const response = await fetch(endpoint, {
             method: 'GET',
             headers: {
@@ -239,6 +259,7 @@ export async function download_cookie(payload)
                                 const set_ret = await browser.cookies.set(new_cookie);
                                     console.log("set cookie", set_ret);
                             } catch (error) {
+                                showBadge("err");
                                 console.log("set cookie error", error);
                             }
                             
@@ -266,6 +287,7 @@ export async function download_cookie(payload)
         }
     } catch (error) {
         console.log("error", error);
+        showBadge("err");
         return false;
     }
 }
@@ -372,4 +394,12 @@ export function sleep(ms) {
     return new Promise((resolve) => {
       setTimeout(resolve, ms);
     });
+}
+
+export function showBadge(text, color = "red", delay = 5000) {
+    chrome.action.setBadgeText({text:text});
+    chrome.action.setBadgeBackgroundColor({color:color});
+    setTimeout(() => {
+        chrome.action.setBadgeText({ text: '' });
+    }, delay);
 }
