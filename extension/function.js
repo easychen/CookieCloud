@@ -175,7 +175,7 @@ export async function upload_cookie( payload )
     } 
     // 用aes对cookie进行加密
     const the_key = CryptoJS.MD5(payload['uuid']+'-'+payload['password']).toString().substring(0,16);
-    const data_to_encrypt = JSON.stringify({"cookie_data":cookies,"local_storage_data":local_storages});
+    const data_to_encrypt = JSON.stringify({"cookie_data":cookies,"local_storage_data":local_storages,"update_time":new Date()});
     const encrypted = CryptoJS.AES.encrypt(data_to_encrypt, the_key).toString();
     const endpoint = payload['endpoint'].trim().replace(/\/+$/, '')+'/update';
 
