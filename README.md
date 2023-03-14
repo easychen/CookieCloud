@@ -50,7 +50,7 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 - <https://cookies.xm.mk> 由[Xm798](https://github.com/Xm798)提供
 - <https://cookie.xy213.cn> 由[xuyan0213](https://github.com/xuyan0213)提供
 - <https://cookie-cloud.vantis-space.com> 由[vantis](https://github.com/vantis-zh)提供
-- <https://cookieclolud.wuque.cc> 由[wuquejs](https://github.com/wuquejs)提供
+- <https://cookiecloud.25wz.cn> 由[wuquejs](https://github.com/wuquejs)提供
 
 ### 自行架设
 
