@@ -91,9 +91,10 @@ app.listen(port, () => {
 function cookie_decrypt( uuid, encrypted, password, iv = false)
 {
     const CryptoJS = require('crypto-js');
-    const the_key = CryptoJS.MD5(uuid+'-'+password).toString().substring(0,16);
+    const hash = CryptoJS.MD5(uuid+'-'+password).toString();
+    const the_key = hash.slice(0, 16);
     const options = {
-        iv: CryptoJS.enc.Utf8.parse('0000000000000000'),
+        iv: CryptoJS.enc.Utf8.parse(hash.slice(8, 24)),
         mode: CryptoJS.mode.CBC,
         padding: CryptoJS.pad.Pkcs7
     };

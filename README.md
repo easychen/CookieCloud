@@ -19,7 +19,7 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 
 ## 官方教程
 
-![](images/20230121141854.png)  
+![](images/20230121141854.png)
 
 1. 视频教程：[B站](https://www.bilibili.com/video/BV1fR4y1a7zb) | [Youtube](https://youtu.be/3oeSiGHXeQw) 求关注求订阅🥺
 1. 图文教程：[掘金](https://juejin.cn/post/7190963442017108027)
@@ -29,7 +29,7 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 1. 目前只支持单向同步，即一个浏览器上传，一个浏览器下载
 2. 浏览器扩展只官方支持 Chrome 和 Edge。其他 Chrome 内核浏览器可用，但未经测试。使用源码 `cd extension && pnpm build --target=firefox-mv2` 可自行编译 Firefox 版本，注意 Firefox 的 Cookie 格式和 Chrome 系有差异，不能混用
 
-![](images/20230121092535.png)  
+![](images/20230121092535.png)
 
 ## 浏览器插件
 
@@ -84,7 +84,7 @@ cd api && yarn install && node app.js
 
 进入浏览器插件列表，点击 service worker，会弹出一个面板，可查看运行日志
 
-![](images/20230121095327.png)  
+![](images/20230121095327.png)
 
 ## API 接口
 
@@ -122,12 +122,18 @@ const data = JSON.stringify(cookies);
 
 参考函数
 
-```node
-function cookie_decrypt( uuid, encrypted, password )
+```js
+function cookie_decrypt( uuid, encrypted, password, useIv = false)
 {
     const CryptoJS = require('crypto-js');
-    const the_key = CryptoJS.MD5(uuid+'-'+password).toString().substring(0,16);
-    const decrypted = CryptoJS.AES.decrypt(encrypted, the_key).toString(CryptoJS.enc.Utf8);
+    const hash = CryptoJS.MD5(uuid+'-'+password).toString();
+    const the_key = hash.slice(0, 16);
+    const options = {
+        iv: CryptoJS.enc.Utf8.parse(hash.slice(8, 24)),
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+    };
+    const decrypted = CryptoJS.AES.decrypt(encrypted, the_key, useIv ? options : void 0).toString(CryptoJS.enc.Utf8);
     const parsed = JSON.parse(decrypted);
     return parsed;
 }
@@ -137,7 +143,7 @@ function cookie_decrypt( uuid, encrypted, password )
 
 ## 无头浏览器使用CookieCloud示例
 
-请参考 `examples/playwright/tests/example.spec.js` 
+请参考 `examples/playwright/tests/example.spec.js`
 
 ```javascript
 test('使用CookieCloud访问nexusphp', async ({ page, browser }) => {
@@ -167,7 +173,7 @@ async function cloud_cookie( host, uuid, password )
   let cookies = [];
   if( json && json.encrypted )
   {
-    const {cookie_data, local_storage_data} = cookie_decrypt(uuid, json.encrypted, password);
+    const {cookie_data, local_storage_data} = cookie_decrypt(uuid, json.encrypted, password, json.iv);
     for( const key in cookie_data )
     {
       // merge cookie_data[key] to cookies
@@ -180,11 +186,17 @@ async function cloud_cookie( host, uuid, password )
   return cookies;
 }
 
-function cookie_decrypt( uuid, encrypted, password )
+function cookie_decrypt( uuid, encrypted, password, useIv = false)
 {
     const CryptoJS = require('crypto-js');
-    const the_key = CryptoJS.MD5(uuid+'-'+password).toString().substring(0,16);
-    const decrypted = CryptoJS.AES.decrypt(encrypted, the_key).toString(CryptoJS.enc.Utf8);
+    const hash = CryptoJS.MD5(uuid+'-'+password).toString();
+    const the_key = hash.slice(0, 16);
+    const options = {
+        iv: CryptoJS.enc.Utf8.parse(hash.slice(8, 24)),
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+    };
+    const decrypted = CryptoJS.AES.decrypt(encrypted, the_key, useIv ? options : void 0).toString(CryptoJS.enc.Utf8);
     const parsed = JSON.parse(decrypted);
     return parsed;
 }

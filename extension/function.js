@@ -174,10 +174,11 @@ export async function upload_cookie( payload )
         return false;
     }
     // 用aes对cookie进行加密
-    const the_key = CryptoJS.MD5(payload['uuid']+'-'+payload['password']).toString().substring(0,16);
+    const hash = CryptoJS.MD5(payload['uuid']+'-'+payload['password']).toString();
+    const the_key = hash.slice(0, 16);
     const data_to_encrypt = JSON.stringify({"cookie_data":cookies,"local_storage_data":local_storages,"update_time":new Date()});
     const options = {
-        iv: CryptoJS.enc.Utf8.parse('0000000000000000'),
+        iv: CryptoJS.enc.Utf8.parse(hash.slice(8, 24)),
         mode: CryptoJS.mode.CBC,
         padding: CryptoJS.pad.Pkcs7
     };
@@ -301,9 +302,10 @@ export async function download_cookie(payload)
 function cookie_decrypt( uuid, encrypted, password, iv = false)
 {
     const CryptoJS = require('crypto-js');
-    const the_key = CryptoJS.MD5(uuid+'-'+password).toString().substring(0,16);
+    const hash = CryptoJS.MD5(uuid+'-'+password).toString();
+    const the_key = hash.slice(0, 16);
     const options = {
-        iv: CryptoJS.enc.Utf8.parse('0000000000000000'),
+        iv: CryptoJS.enc.Utf8.parse(hash.slice(8, 24)),
         mode: CryptoJS.mode.CBC,
         padding: CryptoJS.pad.Pkcs7
       };

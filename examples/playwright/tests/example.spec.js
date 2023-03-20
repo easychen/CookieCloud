@@ -24,7 +24,7 @@ async function cloud_cookie( host, uuid, password )
   let cookies = [];
   if( json && json.encrypted )
   {
-    const {cookie_data, local_storage_data} = cookie_decrypt(uuid, json.encrypted, password);
+    const {cookie_data, local_storage_data} = cookie_decrypt(uuid, json.encrypted, password, json.iv);
     for( const key in cookie_data )
     {
       // merge cookie_data[key] to cookies
@@ -37,11 +37,17 @@ async function cloud_cookie( host, uuid, password )
   return cookies;
 }
 
-function cookie_decrypt( uuid, encrypted, password )
+function cookie_decrypt( uuid, encrypted, password, iv = false)
 {
     const CryptoJS = require('crypto-js');
-    const the_key = CryptoJS.MD5(uuid+'-'+password).toString().substring(0,16);
-    const decrypted = CryptoJS.AES.decrypt(encrypted, the_key).toString(CryptoJS.enc.Utf8);
+    const hash = CryptoJS.MD5(uuid+'-'+password).toString();
+    const the_key = hash.slice(0, 16);
+    const options = {
+        iv: CryptoJS.enc.Utf8.parse(hash.slice(8, 24)),
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+    };
+    const decrypted = CryptoJS.AES.decrypt(encrypted, the_key, iv ? options : void 0).toString(CryptoJS.enc.Utf8);
     const parsed = JSON.parse(decrypted);
     return parsed;
 }
