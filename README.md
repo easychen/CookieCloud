@@ -215,6 +215,8 @@ function cookie_decrypt( uuid, encrypted, password )
 
 ## Deno 参考
 
+[感谢JokerQyou分享](https://github.com/easychen/CookieCloud/issues/41)
+
 ```ts
 import {crypto, toHashString} from 'https://deno.land/std@0.200.0/crypto/mod.ts'
 import {decode } from 'https://deno.land/std@0.200.0/encoding/base64.ts'
