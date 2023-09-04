@@ -212,3 +212,85 @@ function cookie_decrypt( uuid, encrypted, password )
 ## Python 解密
 
 可参考这篇文章 [《Python 中 Crypto 对 JS 中 CryptoJS AES 加密解密的实现及问题处理》](https://blog.homurax.com/2022/08/12/python-crypto/) 或使用[PyCookieCloud](https://github.com/lupohan44/PyCookieCloud)
+
+## Deno 参考
+
+```ts
+import {crypto, toHashString} from 'https://deno.land/std@0.200.0/crypto/mod.ts'
+import {decode } from 'https://deno.land/std@0.200.0/encoding/base64.ts'
+
+const evpkdf = async (
+  password: Uint8Array,
+  salt: Uint8Array,
+  iterations: number,
+): Promise<{
+  key: Uint8Array,
+  iv: Uint8Array,
+}> => {
+  const keySize = 32
+  const ivSize = 16
+  const derivedKey = new Uint8Array(keySize + ivSize)
+  let currentBlock = 1
+  let digest = new Uint8Array(0)
+  const hashLength = 16
+  while ((currentBlock - 1) * hashLength < keySize + ivSize) {
+    const data = new Uint8Array(digest.length + password.length + salt.length)
+    data.set(digest)
+    data.set(password, digest.length)
+    data.set(salt, digest.length + password.length)
+    digest = await crypto.subtle.digest('MD5', data).then(buf => new Uint8Array(buf))
+
+    for (let i = 1; i < iterations; i++) {
+      digest = await crypto.subtle.digest('MD5', digest).then(buf => new Uint8Array(buf))
+    }
+    derivedKey.set(digest, (currentBlock - 1) * hashLength)
+    currentBlock++
+  }
+  return {
+    key: derivedKey.slice(0, keySize),
+    iv: derivedKey.slice(keySize),
+  }
+}
+
+const main = async (env: Record<string, string>) => {
+  const {
+    COOKIE_CLOUD_HOST: CC_HOST,
+    COOKIE_CLOUD_UUID: CC_UUID,
+    COOKIE_CLOUD_PASSWORD: CC_PW,
+  } = env
+  const resp = await fetch(`${CC_HOST}/get/${CC_UUID}`).then(r => r.json())
+  console.log(resp)
+  let cookies = []
+  if (resp && resp.encrypted)  {
+    console.log(resp.encrypted)
+    console.log(new TextDecoder().decode(decode(resp.encrypted)).slice(0, 16))
+    const decoded = decode(resp.encrypted)
+    // Salted__ + 8 bytes salt, followed by cipher text
+    const salt = decoded.slice(8, 16)
+    const cipher_text = decoded.slice(16)
+
+    const password = await crypto.subtle.digest(
+      'MD5',
+      new TextEncoder().encode(`${CC_UUID}-${CC_PW}`),
+    ).then(
+      buf => toHashString(buf).substring(0, 16)
+    ).then(
+      p => new TextEncoder().encode(p)
+    )
+    const {key, iv} = await evpkdf(password, salt, 1)
+    const privete_key = await crypto.subtle.importKey(
+      'raw',
+      key,
+      'AES-CBC',
+      false,
+      ['decrypt'],
+    )
+
+    const d = await crypto.subtle.decrypt(
+      {name: 'AES-CBC', iv},
+      privete_key,
+      cipher_text,
+    )
+    console.log('decrypted:', new TextDecoder().decode(d))
+}
+```
