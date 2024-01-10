@@ -172,11 +172,17 @@ export async function upload_cookie( payload )
         console.log("error", error);
         showBadge("err");
         return false;
-    } 
+    }
     // 用aes对cookie进行加密
-    const the_key = CryptoJS.MD5(payload['uuid']+'-'+payload['password']).toString().substring(0,16);
+    const hash = CryptoJS.MD5(payload['uuid']+'-'+payload['password']).toString();
+    const the_key = hash.slice(0, 16);
     const data_to_encrypt = JSON.stringify({"cookie_data":cookies,"local_storage_data":local_storages,"update_time":new Date()});
-    const encrypted = CryptoJS.AES.encrypt(data_to_encrypt, the_key).toString();
+    const options = {
+        iv: CryptoJS.enc.Utf8.parse(hash.slice(8, 24)),
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+    };
+    const encrypted = CryptoJS.AES.encrypt(data_to_encrypt, the_key, options).toString();
     const endpoint = payload['endpoint'].trim().replace(/\/+$/, '')+'/update';
 
     // get sha256 of the encrypted data
@@ -189,10 +195,11 @@ export async function upload_cookie( payload )
         console.log("same data in 24 hours, skip1");
         return {action:'done',note:'本地Cookie数据无变动，不再上传'};
     }
-    
+
     const payload2 = {
             uuid: payload['uuid'],
-            encrypted: encrypted
+            encrypted: encrypted,
+            iv: true
     };
     // console.log( endpoint, payload2 );
     try {
@@ -204,15 +211,15 @@ export async function upload_cookie( payload )
         });
         const result = await response.json();
 
-        if( result && result.action === 'done' ) 
-            await save_data( 'LAST_UPLOADED_COOKIE', {"timestamp": new Date().getTime(), "sha256":sha256 } );    
+        if( result && result.action === 'done' )
+            await save_data( 'LAST_UPLOADED_COOKIE', {"timestamp": new Date().getTime(), "sha256":sha256 } );
 
         return result;
     } catch (error) {
         console.log("error", error);
         showBadge("err");
         return false;
-    }  
+    }
 }
 
 export async function download_cookie(payload)
@@ -230,7 +237,7 @@ export async function download_cookie(payload)
         const result = await response.json();
         if( result && result.encrypted )
         {
-            const { cookie_data, local_storage_data } = cookie_decrypt( uuid, result.encrypted, password );
+            const { cookie_data, local_storage_data } = cookie_decrypt( uuid, result.encrypted, password, result.iv);
             let action = 'done';
             if(cookie_data)
             {
@@ -262,8 +269,8 @@ export async function download_cookie(payload)
                                 showBadge("err");
                                 console.log("set cookie error", error);
                             }
-                            
-                            
+
+
                         }
                     }
                 }
@@ -292,11 +299,17 @@ export async function download_cookie(payload)
     }
 }
 
-function cookie_decrypt( uuid, encrypted, password )
+function cookie_decrypt( uuid, encrypted, password, iv = false)
 {
     const CryptoJS = require('crypto-js');
-    const the_key = CryptoJS.MD5(uuid+'-'+password).toString().substring(0,16);
-    const decrypted = CryptoJS.AES.decrypt(encrypted, the_key).toString(CryptoJS.enc.Utf8);
+    const hash = CryptoJS.MD5(uuid+'-'+password).toString();
+    const the_key = hash.slice(0, 16);
+    const options = {
+        iv: CryptoJS.enc.Utf8.parse(hash.slice(8, 24)),
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+      };
+    const decrypted = CryptoJS.AES.decrypt(encrypted, the_key, iv ? options : void 0).toString(CryptoJS.enc.Utf8);
     const parsed = JSON.parse(decrypted);
     return parsed;
 }
@@ -342,7 +355,7 @@ async function get_cookie_by_domains( domains = [], blacklist = [] )
                     {
                         ret_cookies[domain].push( cookie );
                     }
-                }    
+                }
             }
         }
         else
@@ -353,7 +366,7 @@ async function get_cookie_by_domains( domains = [], blacklist = [] )
                 // console.log("the cookie", cookie);
                 if( cookie.domain )
                 {
-                    
+
                     let in_blacklist = false;
                     for( const black of blacklist )
                     {
@@ -373,16 +386,16 @@ async function get_cookie_by_domains( domains = [], blacklist = [] )
                         ret_cookies[cookie.domain].push( cookie );
                     }
                 }
-                
+
             }
         }
-        
+
     }
     // console.log( "ret_cookies", ret_cookies );
     return ret_cookies;
 }
 
-function buildUrl(secure, domain, path) 
+function buildUrl(secure, domain, path)
 {
     if (domain.startsWith('.')) {
         domain = domain.substr(1);

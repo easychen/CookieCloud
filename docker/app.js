@@ -12,10 +12,10 @@ if (!fs.existsSync(data_dir)) fs.mkdirSync(data_dir);
 
 var multer = require('multer');
 var forms = multer({limits: { fieldSize: 100*1024*1024 }});
-app.use(forms.array()); 
+app.use(forms.array());
 
 const bodyParser = require('body-parser')
-app.use(bodyParser.json({limit : '50mb' }));  
+app.use(bodyParser.json({limit : '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const api_root = process.env.API_ROOT ? process.env.API_ROOT.trim().replace(/\/+$/, '') : '';
@@ -33,7 +33,7 @@ app.post(`${api_root}/update`, (req, res) => {
         return;
     }
 
-    // save encrypted to uuid file 
+    // save encrypted to uuid file
     const file_path = path.join(data_dir, path.basename(uuid)+'.json');
     const content = JSON.stringify({"encrypted":encrypted});
     fs.writeFileSync(file_path, content);
@@ -67,7 +67,7 @@ app.all(`${api_root}/get/:uuid`, (req, res) => {
         // 如果传递了password，则返回解密后的数据
         if( req.body.password )
         {
-            const parsed = cookie_decrypt( uuid, data.encrypted, req.body.password );
+            const parsed = cookie_decrypt( uuid, data.encrypted, req.body.password, data.iv);
             res.json(parsed);
         }else
         {
@@ -88,12 +88,17 @@ app.listen(port, () => {
     console.log(`Server start on http://localhost:${port}${api_root}`);
 });
 
-function cookie_decrypt( uuid, encrypted, password )
+function cookie_decrypt( uuid, encrypted, password, useIv = false)
 {
     const CryptoJS = require('crypto-js');
-    const the_key = CryptoJS.MD5(uuid+'-'+password).toString().substring(0,16);
-    const decrypted = CryptoJS.AES.decrypt(encrypted, the_key).toString(CryptoJS.enc.Utf8);
+    const hash = CryptoJS.MD5(uuid+'-'+password).toString();
+    const the_key = hash.slice(0, 16);
+    const options = {
+        iv: CryptoJS.enc.Utf8.parse(hash.slice(8, 24)),
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+    };
+    const decrypted = CryptoJS.AES.decrypt(encrypted, the_key, useIv ? options : void 0).toString(CryptoJS.enc.Utf8);
     const parsed = JSON.parse(decrypted);
     return parsed;
 }
-  
