@@ -2,8 +2,8 @@
   "name": "cookie-cloud",
   "displayName": "CookieCloud",
   "description": "__MSG_appDesc__",
-  "version": "0.2.2",
-  "default_locale": "en",
+  "version": "0.2.3",
+  "default_locale": "zh_CN",
   "author": "easychen@gmail.com",
   "license": "GPLv3",
   "scripts": {
