@@ -4,26 +4,24 @@ import type { RequestBody, ResponseBody } from "~background/messages/config"
 import short_uid from 'short-uuid';
 import "./style.scss"
 import { load_data, save_data } from './function';
-import { Button } from "antd";
-import { ThemeProvider } from "~theme";
-import type { RadioChangeEvent } from 'antd';
-import { Radio } from 'antd';
+import browser from 'webextension-polyfill';
 
 function IndexPopup() {
-  let init: Object={"endpoint":"http://127.0.0.1:8088","password":"","interval":10,"domains":"","uuid":String(short_uid.generate()),"type":"up","keep_live":"","with_storage":1,"blacklist":"google.com", "headers": ""};
+  let init: Object={"endpoint":"http://127.0.0.1:8088","password":"","interval":10,"domains":"","uuid":String(short_uid.generate()),"type":"up","keep_live":"","with_storage":1,"blacklist":"google.com", "headers": "","expire_minutes":60*24*365};
   const [data, setData] = useState(init);
   
-  async function test(action='测试')
+  async function test(action=browser.i18n.getMessage('test'))
   {
     console.log("request,begin");
     if( !data['endpoint'] || !data['password'] || !data['uuid'] || !data['type'] )
     {
-      alert('请填写完整的信息');
+      alert(browser.i18n.getMessage("fullMessagePlease"));
       return;
     }
     if( data['type'] == 'pause' )
     {
-      alert('暂停状态不能'+action);
+      // alert('暂停状态不能'+action);
+      alert(browser.i18n.getMessage("actionNotAllowedInPause"));
       return;
     }
     const ret = await sendToBackground<RequestBody, ResponseBody>({name:"config",body:{payload:{...data,no_cache:1}}});
@@ -33,10 +31,10 @@ function IndexPopup() {
       if( ret['note'] ) 
         alert(ret['note']);
       else
-        alert(action+'成功');
+        alert(action+browser.i18n.getMessage('success'));
     }else
     {
-      alert(action+'失败，请检查填写的信息是否正确');
+      alert(action+browser.i18n.getMessage('failedCheckInfo'));
     }
   }
 
@@ -44,7 +42,8 @@ function IndexPopup() {
   {
     if( !data['endpoint'] || !data['password'] || !data['uuid'] || !data['type'] )
     {
-      alert('请填写完整的信息');
+      // alert('请填写完整的信息');
+      alert(browser.i18n.getMessage("fullMessagePlease"));
       return;
     }
     await save_data( "COOKIE_SYNC_SETTING", data );
@@ -52,12 +51,13 @@ function IndexPopup() {
     console.log( "load", ret );
     if( JSON.stringify(ret) == JSON.stringify(data) )
     {
-      alert('保存成功');
+      // alert('保存成功');
+      alert(browser.i18n.getMessage("saveSuccess"));
       window.close();
     }
   }
 
-  function onChange(name:string, e:(React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>|RadioChangeEvent))
+  function onChange(name:string, e:(React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>))
   {
     // console.log( "e" , name , e.target.value );
     setData({...data,[name]:e.target.value??''});
@@ -82,87 +82,101 @@ function IndexPopup() {
     load_config();
   },[]);
   
-  return <ThemeProvider><div className="w-128 overflow-x-hidden" style={{"width":"360px"}}>
+  return <div className="w-128 overflow-x-hidden" style={{"width":"360px"}}>
     <div className="form p-5">
       <div className="text-line text-gray-600">
-        <div className="">工作模式</div>
+        <div className="">{browser.i18n.getMessage('workingMode')}</div>
         <div className="my-2">
+        {/*
         <Radio.Group onChange={e=>onChange('type',e)} value={data['type']}>
           <Radio value={'up'}>上传到服务器</Radio>
           <Radio value={'down'}>覆盖到浏览器</Radio>
           <Radio value={'pause'}>暂停</Radio>
         </Radio.Group>
+        */}
+        <label className="mr-2"><input type="radio" name="type" value="up" checked={data['type'] == 'up'} onChange={e=>onChange('type',e)} /> {browser.i18n.getMessage('upToServer')}</label>
+        <label className="mr-2"><input type="radio" name="type" value="down" checked={data['type'] == 'down'} onChange={e=>onChange('type',e)} /> {browser.i18n.getMessage('overwriteToBrowser')}
+        </label>
+        <label className="mr-2"><input type="radio" name="type" value="pause" checked={data['type'] == 'pause'} onChange={e=>onChange('type',e)} /> {browser.i18n.getMessage('pauseSync')}</label>
+        
         </div>
 
         {data['type'] && data['type'] == 'down' && <div className="bg-red-600 text-white p-2 my-2 rounded">
-        覆盖模式主要用于云端和只读用的浏览器，Cookie和Local Storage覆盖可能导致当前浏览器的登录和修改操作失效；另外部分网站不允许同一个cookie在多个浏览器同时登录，可能导致其他浏览器上账号退出。
+        {browser.i18n.getMessage('overwriteModeDesp')}
         </div>}
         
         {data['type'] && data['type'] != 'pause' && <>
-        <div className="">服务器地址</div>
-        <input type="text" className="border-1  my-2 p-2 rounded w-full" placeholder="请输入服务器地址" value={data['endpoint']} onChange={e=>onChange('endpoint',e)} />
-        <div className="">用户KEY</div>
+        <div className="">{browser.i18n.getMessage('serverHost')}</div>
+        <input type="text" className="border-1  my-2 p-2 rounded w-full" placeholder={browser.i18n.getMessage('serverHostPlaceholder')} value={data['endpoint']} onChange={e=>onChange('endpoint',e)} />
+        <div className="">{browser.i18n.getMessage('uuid')}</div>
         <div className="flex flex-row">
           <div className="left flex-1">
-          <input type="text" className="border-1  my-2 p-2 rounded w-full" placeholder="唯一用户ID" value={data['uuid']}  onChange={e=>onChange('uuid',e)}/>
+          <input type="text" className="border-1  my-2 p-2 rounded w-full" placeholder={browser.i18n.getMessage('uuidPlaceholder')} value={data['uuid']}  onChange={e=>onChange('uuid',e)}/>
           </div>
           <div className="right">
-          <button className="p-2 rounded my-2 ml-2" onClick={()=>uuid_regen()}>重新生成</button>
+          <button className="p-2 rounded my-2 ml-2" onClick={()=>uuid_regen()}>{browser.i18n.getMessage('reGenerate')}</button>
           </div>
         </div>
-        <div className="">端对端加密密码</div>
+        <div className="">{browser.i18n.getMessage('syncPassword')}</div>
         <div className="flex flex-row">
           <div className="left flex-1">
-          <input type="text" className="border-1  my-2 p-2 rounded w-full" placeholder="丢失后数据失效，请妥善保管" value={data['password']}  onChange={e=>onChange('password',e)}/>
+          <input type="text" className="border-1  my-2 p-2 rounded w-full" placeholder={browser.i18n.getMessage('syncPasswordPlaceholder')} value={data['password']}  onChange={e=>onChange('password',e)}/>
           </div>
           <div className="right">
-          <button className="p-2 rounded my-2 ml-2" onClick={()=>password_gen()}>自动生成</button>
+          <button className="p-2 rounded my-2 ml-2" onClick={()=>password_gen()}>{browser.i18n.getMessage('generate')}</button>
           </div>
         </div>
-        <div className="">同步时间间隔·分钟</div>
-        <input type="number" className="border-1  my-2 p-2 rounded w-full" placeholder="最少10分钟" value={data['interval']} onChange={e=>onChange('interval',e)} />
+        <div className="">{browser.i18n.getMessage('cookieExpireMinutes')}</div>
+        <input type="number" className="border-1  my-2 p-2 rounded w-full" placeholder={browser.i18n.getMessage('cookieExpireMinutesPlaceholder')} value={data['expire_minutes']||0} onChange={e=>onChange('expire_minutes',e)} />
+
+        <div className="">{browser.i18n.getMessage('syncTimeInterval')}</div>
+        <input type="number" className="border-1  my-2 p-2 rounded w-full" placeholder={browser.i18n.getMessage('syncTimeIntervalPlaceholder')} value={data['interval']} onChange={e=>onChange('interval',e)} />
 
         {data['type'] && data['type'] == 'up' && <>
-        <div className="">是否同步Local Storage</div>
-        <div className="my-2">
+        <div className="">{browser.i18n.getMessage('syncLocalStorageOrNot')}</div>
+        <div className="my-2 flex flex-row items-center">
+        {/*
         <Radio.Group onChange={e=>onChange('with_storage',e)} value={data['with_storage']}>
           <Radio value={1}>是</Radio>
           <Radio value={0}>否</Radio>
         </Radio.Group>
+        */}
+        <label className="mr-2"><input type="radio" name="with_storage" value="1" checked={data['with_storage'] == 1} onChange={e=>onChange('with_storage',e)} /> {browser.i18n.getMessage('yes')}</label>
+        <label className="mr-2"><input type="radio" name="with_storage" value="0" checked={data['with_storage'] == 0} onChange={e=>onChange('with_storage',e)} /> {browser.i18n.getMessage('no')}</label>
         </div>
 
-        <div className="">请求Header·选填</div>
-        <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder="在请求时追加Header，用于服务端鉴权等场景，一行一个，格式为'Key:Value'，不能有空格"  onChange={e=>onChange('headers',e)} value={data['headers']}/>
+        <div className="">{browser.i18n.getMessage('requestHeader')}</div>
+        <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder={browser.i18n.getMessage('requestHeaderPlaceholder')}  onChange={e=>onChange('headers',e)} value={data['headers']}/>
 
-        <div className="">同步域名关键词·选填</div>
-        <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder="一行一个，同步包含关键词的全部域名，如qq.com,jd.com会包含全部子域名，留空默认同步全部"  onChange={e=>onChange('domains',e)} value={data['domains']}/>
+        <div className="">{browser.i18n.getMessage('syncDomainKeyword')}</div>
+        <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder={browser.i18n.getMessage('syncDomainKeywordPlaceholder')}  onChange={e=>onChange('domains',e)} value={data['domains']}/>
 
-        <div className="">同步域名黑名单·选填</div>
-        <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder="黑名单仅在同步域名关键词为空时生效。一行一个域名，匹配则不参与同步"  onChange={e=>onChange('blacklist',e)} value={data['blacklist']}/>
+        <div className="">{browser.i18n.getMessage('syncDomainBlacklist')}</div>
+        <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder={browser.i18n.getMessage('syncDomainBlacklistPlaceholder')}  onChange={e=>onChange('blacklist',e)} value={data['blacklist']}/>
 
 
 
-        <div className="">Cookie保活·选填</div>
-        <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder="定时后台刷新URL，模拟用户活跃。一行一个URL，默认60分钟，可用 URL|分钟数 的方式指定刷新时间"  onChange={e=>onChange('keep_live',e)} value={data['keep_live']}/>
+        <div className="">{browser.i18n.getMessage('cookieKeepLive')}</div>
+        <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder={browser.i18n.getMessage('cookieKeepLivePlaceholder')}  onChange={e=>onChange('keep_live',e)} value={data['keep_live']}/>
         </>}
         </>}
 
         {data['type'] && data['type'] == 'pause' && <>
-        <div className="bg-blue-400 text-white p-2 my-2 rounded">暂停同步和保活</div>
+        <div className="bg-blue-400 text-white p-2 my-2 rounded">{browser.i18n.getMessage('keepLiveStop')}</div>
         </>}
         <div className="flex flex-row justify-between mt-2">
           <div className="left text-gray-400">
-            {data['type'] && data['type'] != 'pause' && <><Button className="hover:bg-blue-100 mr-2" onClick={()=>test('手动同步')}>手动同步</Button><Button className="hover:bg-blue-100" onClick={()=>test('测试')}>测试</Button></>}
+            {data['type'] && data['type'] != 'pause' && <><button className="p-2 rounded hover:bg-blue-100 mr-2" onClick={()=>test(browser.i18n.getMessage('syncManual'))}>{browser.i18n.getMessage('syncManual')}</button><button className="hover:bg-blue-100 p-2 rounded" onClick={()=>test(browser.i18n.getMessage('test'))}>{browser.i18n.getMessage('test')}</button></>}
 
           </div>
           <div className="right">
-            <Button className="" onClick={()=>save()}>保存</Button>
+            <button className="p-2 rounded" onClick={()=>save()}>{browser.i18n.getMessage('save')}</button>
           </div>
         </div>
 
       </div>
     </div>
-  </div></ThemeProvider>
+  </div>
 }
 
 export default IndexPopup

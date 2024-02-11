@@ -4,81 +4,79 @@
 
 ![](extension/assets/icon.png)
 
-CookieCloud is a small tool for syncing cookies with your self-hosted server, allowing you to synchronize browser cookies and local storage to your phone and cloud. It features built-in end-to-end encryption and allows you to set a synchronization interval.
+CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览器的Cookie及Local storage同步到手机和云端，它内置端对端加密，可设定同步时间间隔。
 
-> The latest version now supports synchronization of local storage under the same domain name.
+> 最新版本支持了对同域名下local storage的同步
 
-[Telegram channel](https://t.me/CookieCloudTG) | [Telegram group](https://t.me/CookieCloudGroup)
+[Telegram频道](https://t.me/CookieCloudTG) | [Telegram交流群](https://t.me/CookieCloudGroup)
 
 ## ⚠️ Breaking Change
 
-Due to the high demand for local storage support, plugin version 0.1.5+ now also supports local storage in addition to cookies. This has resulted in a change to the encrypted text format (from a separate cookie object to `{ cookie_data, local_storage_data }`).
+由于支持 local storage 的呼声很高，因此插件版本 0.1.5+ 除了 cookie 也支持了 local storage，这导致加密文本格式变化（从独立cookie对象变成{ cookie_data, local_storage_data }）。
 
-Furthermore, to avoid conflicts in configuration synchronization, the configuration storage has been moved from remote to local. Users of previous versions will need to reconfigure their setup.
+另外，为避免配置同步导致的上下行冲突，配置存储从 remote 改到了 local，使用之前版本的同学需要重新配置一下。
 
-We apologize for any inconvenience this may cause 🙇🏻‍♂️
+对此带来的不便深表歉意 🙇🏻‍♂️
 
 
-## Official Tutorials
+## 官方教程
 
 ![](images/20230121141854.png)  
 
-1. Video: [Bilibili](https://www.bilibili.com/video/BV1fR4y1a7zb) | [YouTube](https://youtu.be/3oeSiGHXeQw) - Please follow and subscribe 🥺
-2. Tutorial: [Juejin](https://juejin.cn/post/7190963442017108027)
+1. 视频教程：[B站](https://www.bilibili.com/video/BV1fR4y1a7zb) | [Youtube](https://youtu.be/3oeSiGHXeQw) 求关注求订阅🥺
+1. 图文教程：[掘金](https://juejin.cn/post/7190963442017108027)
 
 ## FAQ
 
-1. Currently, synchronization is only one-way, meaning one browser can upload while another downloads.
-2. The browser extension officially supports Chrome and Edge. Other Chromium-based browsers might work but have not been tested. Use the source code `cd extension && pnpm build --target=firefox-mv2` to compile a version for Firefox yourself. Be aware that Firefox's cookie format is different from Chrome's and they cannot be mixed.
+1. 目前只支持单向同步，即一个浏览器上传，一个浏览器下载
+2. 浏览器扩展只官方支持 Chrome 和 Edge。其他 Chrome 内核浏览器可用，但未经测试。使用源码 `cd extension && pnpm build --target=firefox-mv2` 可自行编译 Firefox 版本，注意 Firefox 的 Cookie 格式和 Chrome 系有差异，不能混用
 
 ![](images/20230121092535.png)  
 
-## Browser Plugin
+## 浏览器插件
 
-1. Installation from store: [Edge Store](https://microsoftedge.microsoft.com/addons/detail/cookiecloud/bffenpfpjikaeocaihdonmgnjjdpjkeo) | [Chrome Store](https://chrome.google.com/webstore/detail/cookiecloud/ffjiejobkoibkjlhjnlgmcnnigeelbdl) (Note: Versions in the store might be delayed due to review processes)
-2. Manual download and installation: See Release
+1. 商店安装：[Edge商店](https://microsoftedge.microsoft.com/addons/detail/cookiecloud/bffenpfpjikaeocaihdonmgnjjdpjkeo) | [Chrome商店](https://chrome.google.com/webstore/detail/cookiecloud/ffjiejobkoibkjlhjnlgmcnnigeelbdl)（ 注意：商店版本会因审核有延迟
+1. 手动下载安装：见 Release
 
+## 服务器端
 
-## Server Side
+### 第三方
 
-### Third Party
+> 由第三方提供的免费服务器端，可供试用，稳定性由第三方决定。感谢他们的分享 👏
 
-> Free server-side services provided by third parties are available for trial. Stability is determined by the third parties. We appreciate their sharing 👏
+> 由于部分服务器端版本较久，如测试提示失败可添加域名关键词再试
 
-> Some server-side versions might be outdated. If tests fail, try adding domain keywords before retrying.
+- <http://45.138.70.177:8088> 由[LSRNB](https://github.com/lsrnb)提供
+- <http://45.145.231.148:8088> 由[shellingford37](https://github.com/shellingford37)提供
+- <http://nastool.cn:8088> 由[nastools](https://github.com/jxxghp/nas-tools)提供
+- <https://cookies.xm.mk> 由[Xm798](https://github.com/Xm798)提供
+- <https://cookie.xy213.cn> 由[xuyan0213](https://github.com/xuyan0213)提供
+- <https://cookie-cloud.vantis-space.com> 由[vantis](https://github.com/vantis-zh)提供
+- <https://cookiecloud.25wz.cn> 由[wuquejs](https://github.com/wuquejs)提供
+- <https://cookiecloud.zhensnow.uk> 由[YeTianXingShi](https://github.com/YeTianXingShi)提供
 
-- <http://45.138.70.177:8088> provided by [LSRNB](https://github.com/lsrnb)
-- <http://45.145.231.148:8088> provided by [shellingford37](https://github.com/shellingford37)
-- <http://nastool.cn:8088> provided by [nastools](https://github.com/jxxghp/nas-tools)
-- <https://cookies.xm.mk> provided by [Xm798](https://github.com/Xm798)
-- <https://cookie.xy213.cn> provided by [xuyan0213](https://github.com/xuyan0213)
-- <https://cookie-cloud.vantis-space.com> provided by [vantis](https://github.com/vantis-zh)
-- <https://cookiecloud.25wz.cn> provided by [wuquejs](https://github.com/wuquejs)
-- <https://cookiecloud.zhensnow.uk> provided by [YeTianXingShi](https://github.com/YeTianXingShi)
+### 自行架设
 
-### Self-hosting
+#### 方案一：通过Docker部署，简单、推荐方案
 
-#### Option One: Deploy through Docker, simple, recommended method
+支持架构：linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
 
-Supports architectures: linux/amd64, linux/arm64, etc.
-
-
-##### Start with Docker Command
+##### 用 Docker 命令启动
 
 ```bash
 docker run -p=8088:8088 easychen/cookiecloud:latest
 ```
-Default port 8088, image address [easychen/cookiecloud](https://hub.docker.com/r/easychen/cookiecloud)
+默认端口 8088 ，镜像地址 [easychen/cookiecloud](https://hub.docker.com/r/easychen/cookiecloud)
 
-###### Specify API Directory - Optional Step, Can Be Skipped
+###### 指定API目录·可选步骤可跳过
 
-Add the environment variable -e API_ROOT=/`subdirectory must start with a slash` to specify a subdirectory:
+添加环境变量 -e API_ROOT=/`二级目录需要以斜杠开头` 可以指定二级目录:
 
 ```bash
 docker run -e API_ROOT=/cookie -p=8088:8088 easychen/cookiecloud:latest
 ```
 
-##### Start with Docker-compose
+##### 用 Docker-compose 启动
 
 ```yml
 version: '2'
@@ -93,58 +91,58 @@ services:
       - 8088:8088
 ```
 
-[docker-compose.yml provided by aitixiong](https://github.com/easychen/CookieCloud/issues/42)
+[docker-compose.yml由aitixiong提供](https://github.com/easychen/CookieCloud/issues/42)
 
-#### Option Two: Deploy with Node
+#### 方案二：通过 Node 部署
 
-> Suitable for environments without docker but supporting node, requires installing node in advance
+> 适用于没有 docker 但支持 node 的环境，需要自行先安装 node
 
 ```bash
 cd api && yarn install && node app.js
 ```
-Default port 8088, also supports the API_ROOT environment variable
+默认端口 8088 ，同样也支持 API_ROOT 环境变量
 
-## Debugging and Log Viewing
+## 调试和日志查看
 
-Enter the browser plugin list, click on service worker, a panel will pop up where you can view the operation log
+进入浏览器插件列表，点击 service worker，会弹出一个面板，可查看运行日志
 
 ![](images/20230121095327.png)  
 
-## API Interface
+## API 接口
 
-Upload:
+上传：
 
 - method: POST
 - url: /update
-- parameters
+- 参数
   - uuid
-  - encrypted: the string encrypted locally
+  - encrypted: 本地加密后的字符串
 
-Download:
+下载：
 
 - method: POST/GET
 - url: /get/:uuid
-- parameters:
-   - password: optional, if not provided returns the encrypted string, if provided attempts to decrypt and send the content;
+- 参数：
+   - password:可选，不提供返回加密后的字符串，提供则发送尝试解密后的内容；
 
 
-## Cookie Encryption and Decryption Algorithm
+## Cookie加解密算法
 
-### Encryption
+### 加密
 
 const data = JSON.stringify(cookies);
 
-1. md5(uuid+password) take the first 16 characters as the key
+1. md5(uuid+password) 取前16位作为key
 2. AES.encrypt(data, the_key)
 
-### Decryption
+### 解密
 
-1. md5(uuid+password) take the first 16 characters as the key
+1. md5(uuid+password) 取前16位作为key
 2. AES.decrypt(encrypted, the_key)
 
-After decryption, get data, JSON.parse(data) to obtain the data object { cookie_data, local_storage_data };
+解密后得到 data ，JSON.parse(data) 得到数据对象{ cookie_data, local_storage_data };
 
-Reference function
+参考函数
 
 ```node
 function cookie_decrypt( uuid, encrypted, password )
@@ -157,21 +155,21 @@ function cookie_decrypt( uuid, encrypted, password )
 }
 ```
 
-See `extension/function.js` for more
+`extension/function.js` 查看更多
 
-## Headless Browser Example Using CookieCloud
+## 无头浏览器使用CookieCloud示例
 
-Refer to `examples/playwright/tests/example.spec.js` 
+请参考 `examples/playwright/tests/example.spec.js` 
 
 ```javascript
-test('Access nexusphp using CookieCloud', async ({ page, browser }) => {
-  // Read and decrypt cloud cookie
+test('使用CookieCloud访问nexusphp', async ({ page, browser }) => {
+  // 读取云端cookie并解密
   const cookies = await cloud_cookie(COOKIE_CLOUD_HOST, COOKIE_CLOUD_UUID, COOKIE_CLOUD_PASSWORD);
-  // Add cookie to browser context
+  // 添加cookie到浏览器上下文
   const context = await browser.newContext();
   await context.addCookies(cookies);
   page = await context.newPage();
-  // From this point on, the Cookie is already attached, proceed as normal
+  // 这之后已经带着Cookie了，按正常流程访问
   await page.goto('https://demo.nexusphp.org/index.php');
   await expect(page.getByRole('link', { name: 'magik' })).toHaveText("magik");
   await context.close();
@@ -179,7 +177,7 @@ test('Access nexusphp using CookieCloud', async ({ page, browser }) => {
 
 ```
 
-### Functions
+### 函数
 
 ```javascript
 async function cloud_cookie( host, uuid, password )
@@ -214,13 +212,13 @@ function cookie_decrypt( uuid, encrypted, password )
 }
 ```
 
-## Python Decryption
+## Python 解密
 
-Refer to the article ["Implementation and Problem Handling of Crypto in Python for AES Encryption and Decryption in JS CryptoJS"](https://blog.homurax.com/2022/08/12/python-crypto/) or use [PyCookieCloud](https://github.com/lupohan44/PyCookieCloud)
+可参考这篇文章 [《Python 中 Crypto 对 JS 中 CryptoJS AES 加密解密的实现及问题处理》](https://blog.homurax.com/2022/08/12/python-crypto/) 或使用[PyCookieCloud](https://github.com/lupohan44/PyCookieCloud)
 
-## Go Decryption Algorithm
+## Go 解密算法
 
-[Thanks to sagan for sharing](https://github.com/easychen/CookieCloud/issues/49) 
+[感谢sagan分享](https://github.com/easychen/CookieCloud/issues/49) 
 
 ```go
 package main
@@ -387,9 +385,9 @@ func pkcs7strip(data []byte, blockSize int) ([]byte, error) {
 ```
 
 
-## Deno Reference
+## Deno 参考
 
-[Thanks to JokerQyou for sharing](https://github.com/easychen/CookieCloud/issues/41)
+[感谢JokerQyou分享](https://github.com/easychen/CookieCloud/issues/41)
 
 ```ts
 import {crypto, toHashString} from 'https://deno.land/std@0.200.0/crypto/mod.ts'
@@ -470,7 +468,5 @@ const main = async (env: Record<string, string>) => {
     console.log('decrypted:', new TextDecoder().decode(d))
 }
 ```
-
-Translated by GPT4
 
 

@@ -217,7 +217,7 @@ export async function upload_cookie( payload )
 
 export async function download_cookie(payload)
 {
-    const { uuid, password } = payload;
+    const { uuid, password, expire_minutes } = payload;
     const endpoint = payload['endpoint'].trim().replace(/\/+$/, '')+'/get/'+uuid;
     try {
         showBadge("↓", "blue");
@@ -253,6 +253,7 @@ export async function download_cookie(payload)
                                     new_cookie[key] = cookie[key];
                                 }
                             } );
+                            if( expire_minutes ) new_cookie.expirationDate = new Date().getTime() + expire_minutes*60*1000;
                             new_cookie.url = buildUrl(cookie.secure, cookie.domain, cookie.path);
                             console.log( "new cookie", new_cookie);
                             try {
