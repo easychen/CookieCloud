@@ -253,7 +253,15 @@ export async function download_cookie(payload)
                                     new_cookie[key] = cookie[key];
                                 }
                             } );
-                            if( expire_minutes ) new_cookie.expirationDate = new Date().getTime() + expire_minutes*60*1000;
+                            if( expire_minutes )
+                            {
+                                // 当前时间戳（秒）
+                                const now = parseInt(new Date().getTime()/1000);
+                                console.log("now", now);
+                                new_cookie.expirationDate = now + parseInt(expire_minutes)*60;
+                                console.log("new_cookie.expirationDate", new_cookie.expirationDate);
+
+                            } 
                             new_cookie.url = buildUrl(cookie.secure, cookie.domain, cookie.path);
                             console.log( "new cookie", new_cookie);
                             try {
