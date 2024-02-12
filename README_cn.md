@@ -54,6 +54,7 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 - <https://cookie-cloud.vantis-space.com> 由[vantis](https://github.com/vantis-zh)提供
 - <https://cookiecloud.25wz.cn> 由[wuquejs](https://github.com/wuquejs)提供
 - <https://cookiecloud.zhensnow.uk> 由[YeTianXingShi](https://github.com/YeTianXingShi)提供
+- <https://cookiecloud.ddsrem.com> 由[DDSRem](https://github.com/DDS-Derek)提供
 
 ### 自行架设
 
@@ -79,7 +80,7 @@ docker run -e API_ROOT=/cookie -p=8088:8088 easychen/cookiecloud:latest
 ##### 用 Docker-compose 启动
 
 ```yml
-version: '2'
+version: '3'
 services:
   cookiecloud:
     image: easychen/cookiecloud:latest

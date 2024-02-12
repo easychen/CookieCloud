@@ -55,6 +55,7 @@ We apologize for any inconvenience this may cause 🙇🏻‍♂️
 - <https://cookie-cloud.vantis-space.com> provided by [vantis](https://github.com/vantis-zh)
 - <https://cookiecloud.25wz.cn> provided by [wuquejs](https://github.com/wuquejs)
 - <https://cookiecloud.zhensnow.uk> provided by [YeTianXingShi](https://github.com/YeTianXingShi)
+- <https://cookiecloud.ddsrem.com> provided by [DDSRem](https://github.com/DDS-Derek)
 
 ### Self-hosting
 
@@ -81,7 +82,7 @@ docker run -e API_ROOT=/cookie -p=8088:8088 easychen/cookiecloud:latest
 ##### Start with Docker-compose
 
 ```yml
-version: '2'
+version: '3'
 services:
   cookiecloud:
     image: easychen/cookiecloud:latest

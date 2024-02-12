@@ -1,0 +1,10 @@
+version: '3'
+services:
+  cookiecloud:
+    image: easychen/cookiecloud:latest
+    container_name: cookiecloud-app
+    restart: always
+    volumes:
+      - ./data:/data/api/data
+    ports:
+      - 8088:8088
