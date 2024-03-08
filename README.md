@@ -56,6 +56,7 @@ We apologize for any inconvenience this may cause 🙇🏻‍♂️
 - <https://cookiecloud.25wz.cn> provided by [wuquejs](https://github.com/wuquejs)
 - <https://cookiecloud.zhensnow.uk> provided by [YeTianXingShi](https://github.com/YeTianXingShi)
 - <https://cookiecloud.ddsrem.com> provided by [DDSRem](https://github.com/DDS-Derek)
+- <https://cookiecloud.d0zingcat.xyz> provided by [d0zingcat](https://github.com/d0zingcat)
 
 ### Self-hosting
 
