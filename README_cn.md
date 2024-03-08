@@ -55,6 +55,7 @@ CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览
 - <https://cookiecloud.25wz.cn> 由[wuquejs](https://github.com/wuquejs)提供
 - <https://cookiecloud.zhensnow.uk> 由[YeTianXingShi](https://github.com/YeTianXingShi)提供
 - <https://cookiecloud.ddsrem.com> 由[DDSRem](https://github.com/DDS-Derek)提供
+- <https://cookiecloud.d0zingcat.xyz> 由[d0zingcat](https://github.com/d0zingcat)提供
 
 ### 自行架设
 
