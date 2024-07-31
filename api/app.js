@@ -83,7 +83,7 @@ app.use(function (err, req, res, next) {
 });
 
 
-const port = 8088;
+const port = process.env.PORT || 8088;
 app.listen(port, () => {
     console.log(`Server start on http://localhost:${port}${api_root}`);
 });
