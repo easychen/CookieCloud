@@ -218,6 +218,8 @@ function cookie_decrypt( uuid, encrypted, password )
 
 可参考这篇文章 [《Python 中 Crypto 对 JS 中 CryptoJS AES 加密解密的实现及问题处理》](https://blog.homurax.com/2022/08/12/python-crypto/) 或使用[PyCookieCloud](https://github.com/lupohan44/PyCookieCloud)
 
+[python2实现](https://github.com/easychen/CookieCloud/issues/76)
+
 ## Go 解密算法
 
 [感谢sagan分享](https://github.com/easychen/CookieCloud/issues/49) 
