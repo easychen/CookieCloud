@@ -220,6 +220,8 @@ function cookie_decrypt( uuid, encrypted, password )
 
 Refer to the article ["Implementation and Problem Handling of Crypto in Python for AES Encryption and Decryption in JS CryptoJS"](https://blog.homurax.com/2022/08/12/python-crypto/) or use [PyCookieCloud](https://github.com/lupohan44/PyCookieCloud)
 
+[python2](https://github.com/easychen/CookieCloud/issues/76)
+
 ## Go Decryption Algorithm
 
 [Thanks to sagan for sharing](https://github.com/easychen/CookieCloud/issues/49) 
