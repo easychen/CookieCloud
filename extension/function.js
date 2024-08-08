@@ -204,15 +204,29 @@ export async function upload_cookie( payload )
         });
         const result = await response.json();
 
-        if( result && result.action === 'done' ) 
+        if( result && result.action === 'done' ) {
             await save_data( 'LAST_UPLOADED_COOKIE', {"timestamp": new Date().getTime(), "sha256":sha256 } );    
+            
+            if(payload['webhook_url']) {
+                try {
+                    const webhook_response = await fetch(payload['webhook_url'], {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({"cookie_data":cookies,"local_storage_data":local_storages})
+                    });
+                    console.log("Webhook response:", webhook_response);
+                } catch (error) {
+                    console.log("Webhook error:", error);
+                }
+            }
+        }
 
         return result;
     } catch (error) {
         console.log("error", error);
         showBadge("err");
         return false;
-    }  
+    }
 }
 
 export async function download_cookie(payload)
