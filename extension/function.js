@@ -151,7 +151,7 @@ export async function upload_cookie( payload )
 
     const cookies = await get_cookie_by_domains( domains, blacklist );
     const with_storage = payload['with_storage'] || 0;
-    const local_storages = with_storage ? await get_local_storage_by_domains( domains ) : {};
+    const local_storages = with_storage ? await get_local_storage_by_domains( domains, blacklist ) : {};
 
     let headers = { 'Content-Type': 'application/json', 'Content-Encoding': 'gzip' }
     // 添加鉴权的 header
@@ -310,7 +310,7 @@ function cookie_decrypt( uuid, encrypted, password )
     return parsed;
 }
 
-export async function get_local_storage_by_domains( domains = [] )
+export async function get_local_storage_by_domains( domains = [], blacklist = [] )
 {
     let ret_storage = {};
     const local_storages = await browser_load_all('LS-');
@@ -324,6 +324,20 @@ export async function get_local_storage_by_domains( domains = [] )
                 {
                     console.log( "domain 匹配", domain, key );
                     ret_storage[key] = local_storages[key];
+                }
+            }
+        }
+    } else ret_storage = local_storages;
+    if( Array.isArray(blacklist) && blacklist.length > 0 )
+    {
+        for( const domain of blacklist )
+        {
+            for( const key in ret_storage )
+            {
+                if( key.indexOf(domain) >= 0 )
+                {
+                    console.log( "storage blacklist 匹配", domain, key );
+                    delete ret_storage[key];
                 }
             }
         }
