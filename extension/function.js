@@ -151,7 +151,8 @@ export async function upload_cookie( payload )
 
     const cookies = await get_cookie_by_domains( domains, blacklist );
     const with_storage = payload['with_storage'] || 0;
-    const local_storages = with_storage ? await get_local_storage_by_domains( domains, blacklist ) : {};
+    const storage_domains = payload['storage_domains']?.trim().length > 0 ? payload['storage_domains']?.trim().split("\n") : [];
+    const local_storages = with_storage ? await get_local_storage_by_domains( storage_domains, blacklist ) : {};
 
     let headers = { 'Content-Type': 'application/json', 'Content-Encoding': 'gzip' }
     // 添加鉴权的 header
