@@ -337,7 +337,7 @@ async function get_cookie_by_domains( domains = [], blacklist = [] )
     // 获取cookie
     if( browser.cookies )
     {
-        const cookies = await browser.cookies.getAll({});
+        const cookies = await browser.cookies.getAll({ partitionKey: {} });
         // console.log("cookies", cookies);
         if( Array.isArray(domains) && domains.length > 0 )
         {
