@@ -108,6 +108,10 @@
     {
         "message":"否"
     },
+    "syncStorageDomainKeyword":
+    {
+        "message":"同步Storage域名关键词·选填"
+    },
     "requestHeader":
     {
         "message":"请求Header·选填"
