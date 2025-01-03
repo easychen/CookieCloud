@@ -220,6 +220,8 @@ function cookie_decrypt( uuid, encrypted, password )
 
 [python2实现](https://github.com/easychen/CookieCloud/issues/76)
 
+[另一个使用实例](examples/decrypt.py)
+
 ## Go 解密算法
 
 [感谢sagan分享](https://github.com/easychen/CookieCloud/issues/49) 

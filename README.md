@@ -222,6 +222,8 @@ Refer to the article ["Implementation and Problem Handling of Crypto in Python f
 
 [python2](https://github.com/easychen/CookieCloud/issues/76)
 
+[another example](examples/decrypt.py)
+
 ## Go Decryption Algorithm
 
 [Thanks to sagan for sharing](https://github.com/easychen/CookieCloud/issues/49) 
