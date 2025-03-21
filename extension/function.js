@@ -424,17 +424,36 @@ export function sleep(ms) {
 export function showBadge(text, color = "red", delay = 5000) {
     try {
         if (is_firefox()) {
-            browser.action.setBadgeText({text:text});
-            browser.action.setBadgeBackgroundColor({color:color});
-            setTimeout(() => {
-                browser.action.setBadgeText({ text: '' });
-            }, delay);
+            // Firefox MV2 使用 browserAction API
+            if (browser.browserAction) {
+                browser.browserAction.setBadgeText({text:text});
+                browser.browserAction.setBadgeBackgroundColor({color:color});
+                setTimeout(() => {
+                    browser.browserAction.setBadgeText({ text: '' });
+                }, delay);
+            } else if (browser.action) {
+                // Firefox MV3 使用 action API
+                browser.action.setBadgeText({text:text});
+                browser.action.setBadgeBackgroundColor({color:color});
+                setTimeout(() => {
+                    browser.action.setBadgeText({ text: '' });
+                }, delay);
+            }
         } else {
-            chrome.action.setBadgeText({text:text});
-            chrome.action.setBadgeBackgroundColor({color:color});
-            setTimeout(() => {
-                chrome.action.setBadgeText({ text: '' });
-            }, delay);
+            // Chrome 使用 action API (MV3) 或 browserAction API (MV2)
+            if (chrome.action) {
+                chrome.action.setBadgeText({text:text});
+                chrome.action.setBadgeBackgroundColor({color:color});
+                setTimeout(() => {
+                    chrome.action.setBadgeText({ text: '' });
+                }, delay);
+            } else if (chrome.browserAction) {
+                chrome.browserAction.setBadgeText({text:text});
+                chrome.browserAction.setBadgeBackgroundColor({color:color});
+                setTimeout(() => {
+                    chrome.browserAction.setBadgeText({ text: '' });
+                }, delay);
+            }
         }
     } catch (error) {
         console.error("设置徽章出错:", error);
