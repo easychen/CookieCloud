@@ -66,17 +66,22 @@ function IndexPopup() {
       showNotification(browser.i18n.getMessage("actionNotAllowedInPause"));
       return;
     }
-    const ret = await sendToBackground<RequestBody, ResponseBody>({name:"config",body:{payload:{...data,no_cache:1}}});
-    console.log(action+"返回",ret);
-    if( ret && ret['message'] == 'done' )
-    {
-      if( ret['note'] ) 
-        showNotification(ret['note']);
-      else
-        showNotification(action+browser.i18n.getMessage('success'));
-    }else
-    {
-      showNotification(action+browser.i18n.getMessage('failedCheckInfo'));
+    try {
+      const ret = await sendToBackground<RequestBody, ResponseBody>({name:"config",body:{payload:{...data,no_cache:1}}});
+      console.log(action+"返回",ret);
+      if( ret && ret['message'] == 'done' )
+      {
+        if( ret['note'] ) 
+          showNotification(ret['note']);
+        else
+          showNotification(action+browser.i18n.getMessage('success'));
+      }else
+      {
+        showNotification(action+browser.i18n.getMessage('failedCheckInfo'));
+      }
+    } catch (error) {
+      console.error("测试时出错:", error);
+      showNotification(action+browser.i18n.getMessage('failedCheckInfo') + ": " + error.message);
     }
   }
 
@@ -88,17 +93,19 @@ function IndexPopup() {
       showNotification(browser.i18n.getMessage("fullMessagePlease"));
       return;
     }
-    await save_data( "COOKIE_SYNC_SETTING", data );
-    const ret = await load_data("COOKIE_SYNC_SETTING") ;
-    console.log( "load", ret );
-    if( JSON.stringify(ret) == JSON.stringify(data) )
-    {
-      // alert('保存成功');
-      showNotification(browser.i18n.getMessage("saveSuccess"));
-      // 延迟关闭窗口，让用户有时间看到通知
-      setTimeout(() => {
-        window.close();
-      }, 1000);
+    try {
+      await save_data( "COOKIE_SYNC_SETTING", data );
+      const ret = await load_data("COOKIE_SYNC_SETTING") ;
+      console.log( "load", ret );
+      if( JSON.stringify(ret) == JSON.stringify(data) )
+      {
+        // alert('保存成功');
+        showNotification(browser.i18n.getMessage("saveSuccess"));
+        // 不再自动关闭窗口，让用户可以继续操作（如测试配置）
+      }
+    } catch (error) {
+      console.error("保存设置时出错:", error);
+      showNotification(browser.i18n.getMessage("saveFailed") + ": " + error.message);
     }
   }
 
