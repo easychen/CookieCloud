@@ -1,0 +1,30 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# CookieCloud Project Structure
+
+This document outlines the main components and structure of the CookieCloud project.
+
+## Core Components
+
+- [api/](mdc:api) - Backend server implementation for cookie synchronization
+- [extension/](mdc:extension) - Browser extension source code
+- [examples/](mdc:examples) - Example implementations and usage demos
+- [docker/](mdc:docker) - Docker-related configuration files
+- [design/](mdc:design) - Design assets and documentation
+
+## Key Files
+
+- [README.md](mdc:README.md) - Main project documentation
+- [Docker-compose.yml](mdc:Docker-compose.yml) - Docker compose configuration
+- [RoboFile.php](mdc:RoboFile.php) - Build automation tasks
+
+## Architecture Overview
+
+The project consists of two main parts:
+1. A self-hosted server for storing encrypted cookies
+2. A browser extension for managing cookie synchronization
+
+The communication between components is secured with end-to-end encryption using AES.

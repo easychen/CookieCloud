@@ -1,0 +1,42 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Browser Extension
+
+The browser extension handles cookie management and synchronization with the server.
+
+## Key Features
+
+- Cookie and localStorage synchronization
+- End-to-end encryption
+- Configurable sync intervals
+- Multi-browser support (Chrome/Edge/Firefox)
+
+## Extension Structure
+
+The extension is located in the [extension/](mdc:extension) directory:
+
+- `assets/` - Extension icons and images
+- `src/` - Source code
+- `manifest.json` - Extension configuration
+
+## Build Process
+
+For Chrome/Edge:
+```bash
+cd extension && pnpm build
+```
+
+For Firefox:
+```bash
+cd extension && pnpm build --target=firefox-mv2
+```
+
+## Debugging
+
+Extension logs can be viewed in the browser's service worker panel:
+1. Go to extension list
+2. Click on service worker
+3. View operation logs in the debug panel

@@ -1,0 +1,36 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Examples and Integration Guide
+
+This guide covers examples and integration patterns for CookieCloud.
+
+## Headless Browser Integration
+
+Example implementation using Playwright can be found in [examples/playwright/tests/example.spec.js](mdc:examples/playwright/tests/example.spec.js)
+
+Key integration steps:
+1. Read and decrypt cloud cookies
+2. Add cookies to browser context
+3. Proceed with normal browser automation
+
+## Cookie Encryption/Decryption
+
+Reference implementation in [extension/function.js](mdc:extension/function.js)
+
+### Encryption Process
+1. Generate key: `md5(uuid+password).substring(0,16)`
+2. Encrypt: `AES.encrypt(JSON.stringify(data), key)`
+
+### Decryption Process
+1. Generate key: `md5(uuid+password).substring(0,16)`
+2. Decrypt: `AES.decrypt(encrypted, key)`
+3. Parse: `JSON.parse(decrypted)`
+
+## Data Format
+
+The synchronized data object contains:
+- `cookie_data`: Browser cookies
+- `local_storage_data`: Domain localStorage data

@@ -1,0 +1,39 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# API Server Implementation
+
+The API server provides endpoints for cookie synchronization with end-to-end encryption.
+
+## Key Endpoints
+
+- POST `/update` - Upload encrypted cookies
+  - Parameters: uuid, encrypted
+- GET/POST `/get/:uuid` - Download cookies
+  - Parameters: password (optional)
+
+## Security Implementation
+
+The server implements the following security measures:
+
+1. End-to-end encryption using AES
+2. UUID-based access control
+3. Optional password protection
+
+## Deployment Options
+
+1. Docker deployment (recommended):
+```bash
+docker run -p=8088:8088 easychen/cookiecloud:latest
+```
+
+2. Node.js deployment:
+```bash
+cd api && yarn install && node app.js
+```
+
+## Data Storage
+
+Cookie data is stored in encrypted format in the `/data/api/data` directory when using Docker.
