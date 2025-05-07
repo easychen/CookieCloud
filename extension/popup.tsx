@@ -7,7 +7,7 @@ import { load_data, save_data } from './function';
 import browser from 'webextension-polyfill';
 
 function IndexPopup() {
-  let init: Object={"endpoint":"http://127.0.0.1:8088","password":"","interval":10,"domains":"","uuid":String(short_uid.generate()),"type":"up","keep_live":"","with_storage":1,"blacklist":"google.com", "headers": "","expire_minutes":60*24*365};
+  let init: Object={"endpoint":"http://127.0.0.1:8088","password":"","interval":10,"domains":"","uuid":String(short_uid.generate()),"type":"up","keep_live":"","with_storage":1,"blacklist":"google.com", "headers": "","expire_minutes":60*24*365,"webhook_url":""};
   const [data, setData] = useState(init);
   
   async function test(action=browser.i18n.getMessage('test'))
@@ -147,6 +147,9 @@ function IndexPopup() {
 
         <div className="">{browser.i18n.getMessage('requestHeader')}</div>
         <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder={browser.i18n.getMessage('requestHeaderPlaceholder')}  onChange={e=>onChange('headers',e)} value={data['headers']}/>
+        
+        <div className="">{browser.i18n.getMessage('webhookUrl')}</div>
+        <input type="text" className="border-1 my-2 p-2 rounded w-full" placeholder={browser.i18n.getMessage('webhookUrlPlaceholder')} value={data['webhook_url']} onChange={e=>onChange('webhook_url',e)} />
 
         <div className="">{browser.i18n.getMessage('syncDomainKeyword')}</div>
         <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder={browser.i18n.getMessage('syncDomainKeywordPlaceholder')}  onChange={e=>onChange('domains',e)} value={data['domains']}/>
