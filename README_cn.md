@@ -92,6 +92,8 @@ services:
     ports:
       - 8088:8088
 ```
+然后执行 `docker-compose up -d` 启动。
+
 
 [docker-compose.yml由aitixiong提供](https://github.com/easychen/CookieCloud/issues/42)
 
@@ -103,6 +105,19 @@ services:
 cd api && yarn install && node app.js
 ```
 默认端口 8088 ，同样也支持 API_ROOT 环境变量
+
+#### 在 Zeabur 中使用 Prebuilt 部署
+
+如果在 Zeabur 上创建项目时被识别为静态站点，可手动新建 **Custom Prebuilt**
+服务，镜像使用：
+
+```
+easychen/cookiecloud:latest
+```
+
+端口填 `8088`，类型选 HTTP；持久化存储挂载到 `/data/api/data`；如需子路径
+可在环境变量中设置 `API_ROOT=/cookie`。无需自定义启动命令，保存后 Zeabur
+会正常启动容器。
 
 ## 调试和日志查看
 
