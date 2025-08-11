@@ -25,22 +25,22 @@ export default defineBackground(() => {
       const config = await load_data("COOKIE_SYNC_SETTING");
       if (config) {
         if (config.type && config.type == 'pause') {
-          console.log("暂停模式，不同步");
+          console.log("Pause mode, no sync");
           return true;
         }
 
-        // 获得当前的分钟数
+        // Get current minute count
         const now = new Date();
         const minute = now.getMinutes();
         const hour = now.getHours();
         const day = now.getDate();
         const minute_count = (day * 24 + hour) * 60 + minute;
 
-        // 如果当前分钟数能被interval整除，则执行同步
+        // If current minute count is divisible by interval, execute sync
         if (minute_count % config.interval == 0) {
-          console.log("执行同步", minute_count, config.interval);
+          console.log("Execute sync", minute_count, config.interval);
           const result = (config.type && config.type == 'down') ? await download_cookie(config) : await upload_cookie(config);
-          console.log("同步结果", result);
+          console.log("Sync result", result);
         }
       }
     }

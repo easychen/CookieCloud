@@ -17,5 +17,10 @@ export default defineConfig({
       '<all_urls>'
     ],
     version: '0.2.4'
-  }
+  },
+  vite: () => ({
+    css: {
+      postcss: './postcss.config.js'
+    }
+  })
 });

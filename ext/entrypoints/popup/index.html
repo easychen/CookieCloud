@@ -1,70 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/icon/32.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CookieCloud</title>
-  </head>
-  <body>
-    <div id="app">
-      <div class="popup-container">
-        <div class="header">
-          <h2 id="title">CookieCloud</h2>
-        </div>
-        
-        <div class="form-group">
-          <label for="server" id="server-label">服务器地址</label>
-          <input type="text" id="server" placeholder="https://example.com" />
-        </div>
-        
-        <div class="form-group">
-          <label for="uuid" id="uuid-label">UUID</label>
-          <input type="text" id="uuid" placeholder="用户唯一标识" />
-        </div>
-        
-        <div class="form-group">
-          <label for="password" id="password-label">密码</label>
-          <input type="password" id="password" placeholder="加密密码" />
-        </div>
-        
-        <div class="form-group">
-          <label for="interval" id="interval-label">同步间隔 (分钟)</label>
-          <input type="number" id="interval" min="1" value="10" />
-        </div>
-        
-        <div class="form-group">
-          <label for="mode" id="mode-label">工作模式</label>
-          <select id="mode">
-            <option value="off" id="mode-off">关闭</option>
-            <option value="upload" id="mode-upload">仅上传</option>
-            <option value="download" id="mode-download">仅下载</option>
-            <option value="both" id="mode-both">双向同步</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="blacklist" id="blacklist-label">域名黑名单</label>
-          <textarea id="blacklist" placeholder="每行一个域名，支持通配符\n例如：*.example.com"></textarea>
-        </div>
-        
-        <div class="form-group">
-          <label>
-            <input type="checkbox" id="localstorage" />
-            <span id="localstorage-label">同步 LocalStorage</span>
-          </label>
-        </div>
-        
-        <div class="button-group">
-          <button class="btn btn-primary" id="test-btn">测试连接</button>
-          <button class="btn btn-success" id="save-btn">保存配置</button>
-        </div>
-        
-        <div class="overwrite-warning" id="overwrite-warning" style="display: none;">
-          <p id="overwrite-warning-text">警告：下载模式会覆盖本地 Cookie 数据，请谨慎使用！</p>
-        </div>
-      </div>
-    </div>
-    <script type="module" src="./main.ts"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CookieCloud</title>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="./main.tsx"></script>
+</body>
 </html>

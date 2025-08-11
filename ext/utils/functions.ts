@@ -52,37 +52,36 @@ export async function browser_remove(key: string): Promise<void> {
 }
 
 export async function storage_set(key: string, value: any): Promise<boolean> {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.set({ [key]: value }, function () {
-      return resolve(true);
-    });
-  });
+  try {
+    await browser.storage.local.set({ [key]: value });
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 export async function storage_get(key: string): Promise<any> {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get([key], function (result) {
-      if (result[key] === undefined) {
-        resolve(null);
-      } else {
-        resolve(result[key]);
-      }
-    });
-  });
+  try {
+    const result = await browser.storage.local.get([key]);
+    return result[key] === undefined ? null : result[key];
+  } catch (error) {
+    return null;
+  }
 }
 
 export async function storage_remove(key: string): Promise<any> {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.remove([key], function () {
-      resolve(true);
-    });
-  });
+  try {
+    await browser.storage.local.remove([key]);
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 export async function browser_load_all(prefix: string | null = null): Promise<any> {
   const result = await browser.storage.local.get(null);
   let ret = result;
-  // 只返回以prefix开头的key对应的属性
+  // Only return properties with keys starting with prefix
   if (prefix) {
     ret = {};
     for (let key in result) {
@@ -96,22 +95,24 @@ export async function browser_load_all(prefix: string | null = null): Promise<an
 }
 
 export async function load_all(prefix: string | null = null): Promise<any> {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get(null, function (result) {
-      let ret = result;
-      // 只返回以prefix开头的key对应的属性
-      if (prefix) {
-        ret = {};
-        for (let key in result) {
-          if (key.startsWith(prefix)) {
-            // remove prefix from key
-            ret[key.substring(prefix.length)] = JSON.parse(result[key]) ?? result[key];
-          }
-        }
+  try {
+    const result = await browser.storage.local.get(null);
+    let ret = result;
+    // Only return properties with keys starting with prefix
+    if (prefix) {
+      ret = {};
+      for (let key in result) {
+        if (key.startsWith(prefix)) {
+           // remove prefix from key
+           const value = result[key];
+           ret[key.substring(prefix.length)] = typeof value === 'string' ? (JSON.parse(value) ?? value) : value;
+         }
       }
-      resolve(ret);
-    });
-  });
+    }
+    return ret;
+  } catch (error) {
+    return {};
+  }
 }
 
 export async function load_data(key: string): Promise<any> {
@@ -140,7 +141,7 @@ export async function upload_cookie(payload: UploadPayload): Promise<any> {
   // console.log( payload );
   // none of the fields can be empty
   if (!password || !uuid) {
-    alert("错误的参数");
+    alert("Invalid parameters");
     showBadge("err");
     return false;
   }
@@ -153,7 +154,7 @@ export async function upload_cookie(payload: UploadPayload): Promise<any> {
   const local_storages = with_storage ? await get_local_storage_by_domains(domains) : {};
 
   let headers: any = { 'Content-Type': 'application/json', 'Content-Encoding': 'gzip' }
-  // 添加鉴权的 header
+  // Add authentication header
   try {
     if (payload.headers?.trim().length) {
       let extraHeaderPairs = payload.headers.trim().split("\n");
@@ -162,7 +163,7 @@ export async function upload_cookie(payload: UploadPayload): Promise<any> {
         if (extraHeaderPairKV?.length > 1) {
           headers[extraHeaderPairKV[0]] = extraHeaderPairKV[1];
         } else {
-          console.log("error", "解析 header 错误: ", extraHeaderPair);
+          console.log("error", "Header parsing error: ", extraHeaderPair);
           showBadge("fail", "orange");
         }
       })
@@ -172,7 +173,7 @@ export async function upload_cookie(payload: UploadPayload): Promise<any> {
     showBadge("err");
     return false;
   }
-  // 用aes对cookie进行加密
+  // Encrypt cookie with AES
   const the_key = CryptoJS.MD5(payload.uuid + '-' + payload.password).toString().substring(0, 16);
   const data_to_encrypt = JSON.stringify({ "cookie_data": cookies, "local_storage_data": local_storages, "update_time": new Date() });
   const encrypted = CryptoJS.AES.encrypt(data_to_encrypt, the_key).toString();
@@ -182,10 +183,10 @@ export async function upload_cookie(payload: UploadPayload): Promise<any> {
   const sha256 = CryptoJS.SHA256(uuid + "-" + password + "-" + endpoint + "-" + data_to_encrypt).toString();
   console.log("sha256", sha256);
   const last_uploaded_info = await load_data('LAST_UPLOADED_COOKIE');
-  // 如果24小时内已经上传过同样内容的数据，则不再上传
+  // If same content has been uploaded within 24 hours, don't upload again
   if ((!payload.no_cache || parseInt(payload.no_cache.toString()) < 1) && last_uploaded_info && last_uploaded_info.sha256 === sha256 && new Date().getTime() - last_uploaded_info.timestamp < 1000 * 60 * 60 * 24) {
     console.log("same data in 24 hours, skip1");
-    return { action: 'done', note: '本地Cookie数据无变动，不再上传' };
+    return { action: 'done', note: 'Local Cookie data unchanged, not uploading' };
   }
 
   const payload2 = {
@@ -236,7 +237,7 @@ export async function download_cookie(payload: DownloadPayload): Promise<any> {
               let new_cookie: any = {};
               ['name', 'value', 'domain', 'path', 'secure', 'httpOnly', 'sameSite'].forEach(key => {
                 if (key == 'sameSite' && cookie[key].toLowerCase() == 'unspecified' && is_firefox()) {
-                  // firefox 下 unspecified 会导致cookie无法设置
+                  // In Firefox, unspecified will cause cookie setting to fail
                   // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/cookies/SameSiteStatus
                   new_cookie['sameSite'] = 'no_restriction';
                 } else {
@@ -244,7 +245,7 @@ export async function download_cookie(payload: DownloadPayload): Promise<any> {
                 }
               });
               if (expire_minutes) {
-                // 当前时间戳（秒）
+                // Current timestamp (seconds)
                 const now = parseInt((new Date().getTime() / 1000).toString());
                 console.log("now", now);
                 new_cookie.expirationDate = now + parseInt(expire_minutes.toString()) * 60;
@@ -301,7 +302,7 @@ export async function get_local_storage_by_domains(domains: string[] = []): Prom
     for (const domain of domains) {
       for (const key in local_storages) {
         if (key.indexOf(domain) >= 0) {
-          console.log("domain 匹配", domain, key);
+          console.log("domain matched", domain, key);
           ret_storage[key] = local_storages[key];
         }
       }
@@ -312,7 +313,7 @@ export async function get_local_storage_by_domains(domains: string[] = []): Prom
 
 async function get_cookie_by_domains(domains: string[] = [], blacklist: string[] = []): Promise<CookieData> {
   let ret_cookies: CookieData = {};
-  // 获取cookie
+  // Get cookies
   if (browser.cookies) {
     const cookies = await browser.cookies.getAll({ partitionKey: {} });
     // console.log("cookies", cookies);
@@ -328,7 +329,7 @@ async function get_cookie_by_domains(domains: string[] = [], blacklist: string[]
       }
     }
     else {
-      console.log("domains为空");
+      console.log("domains is empty");
       for (const cookie of cookies) {
         // console.log("the cookie", cookie);
         if (cookie.domain) {
@@ -336,7 +337,7 @@ async function get_cookie_by_domains(domains: string[] = [], blacklist: string[]
           let in_blacklist = false;
           for (const black of blacklist) {
             if (cookie.domain.includes(black)) {
-              console.log("blacklist 匹配", cookie.domain, black);
+              console.log("blacklist matched", cookie.domain, black);
               in_blacklist = true;
             }
           }
@@ -371,9 +372,9 @@ export function sleep(ms: number): Promise<void> {
 }
 
 export function showBadge(text: string, color: string = "red", delay: number = 5000): void {
-  chrome.action.setBadgeText({ text: text });
-  chrome.action.setBadgeBackgroundColor({ color: color });
+  browser.action.setBadgeText({ text: text });
+  browser.action.setBadgeBackgroundColor({ color: color });
   setTimeout(() => {
-    chrome.action.setBadgeText({ text: '' });
+    browser.action.setBadgeText({ text: '' });
   }, delay);
 }

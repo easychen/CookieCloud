@@ -1,103 +1,32 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #333;
-  background-color: #f5f5f5;
-}
-
-#app {
-  width: 400px;
-  min-height: 500px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.popup-container {
-  padding: 20px;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
-}
-
-.header h2 {
-  color: #2c3e50;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 500;
-  color: #555;
-  font-size: 13px;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: 8px 12px;
-  border: 2px solid #ddd;
-  border-radius: 4px;
-  font-size: 13px;
-  transition: border-color 0.3s ease;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: #3498db;
-}
-
-.form-group textarea {
-  resize: vertical;
-  min-height: 60px;
-  font-family: inherit;
-}
-
-.form-group input[type="checkbox"] {
-  width: auto;
-  margin-right: 8px;
-}
-
-.button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.btn {
-  flex: 1;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-primary {
-  background-color: #3498db;
-  color: white;
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded font-medium cursor-pointer transition-all duration-300;
+  }
+  
+  .btn-primary {
+    @apply bg-blue-500 text-white hover:bg-blue-600;
+  }
+  
+  .btn-success {
+    @apply bg-green-500 text-white hover:bg-green-600;
+  }
+  
+  .form-input {
+    @apply w-full px-3 py-2 border-2 border-gray-300 rounded text-sm transition-colors duration-300 focus:outline-none focus:border-blue-500;
+  }
+  
+  .form-textarea {
+    @apply w-full px-3 py-2 border-2 border-gray-300 rounded text-sm transition-colors duration-300 focus:outline-none focus:border-blue-500 resize-y min-h-[60px];
+    font-family: inherit;
+  }
+  
+  .form-select {
+    @apply w-full px-3 py-2 border-2 border-gray-300 rounded text-sm transition-colors duration-300 focus:outline-none focus:border-blue-500;
+  }
 }
 
 .btn-primary:hover {
