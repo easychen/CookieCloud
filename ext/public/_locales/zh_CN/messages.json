@@ -159,5 +159,25 @@
     "copyFailed":
     {
         "message":"复制失败，请手动复制"
+    },
+    "cryptoAlgorithm":
+    {
+        "message":"加密算法"
+    },
+    "cryptoLegacy":
+    {
+        "message":"CryptoJS(动态IV)"
+    },
+    "cryptoAesCbcFixed":
+    {
+        "message":"AES-128-CBC(固定IV)"
+    },
+    "cryptoLegacyDesc":
+    {
+        "message":"使用CryptoJS加密算法，会动态生成IV"
+    },
+    "cryptoAesCbcFixedDesc":
+    {
+        "message":"使用标准 AES-128-CBC 算法，IV固定为 0x0"
     }
   }

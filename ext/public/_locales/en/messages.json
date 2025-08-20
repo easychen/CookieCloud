@@ -122,5 +122,20 @@
     },
     "copyFailed": {
         "message": "Copy failed, please copy manually"
+    },
+    "cryptoAlgorithm": {
+        "message": "Encryption Algorithm"
+    },
+    "cryptoLegacy": {
+        "message": "CryptoJS (Dynamic IV)"
+    },
+    "cryptoAesCbcFixed": {
+        "message": "AES-128-CBC (Fixed IV)"
+    },
+    "cryptoLegacyDesc": {
+        "message": "Uses CryptoJS encryption algorithm with dynamic IV generation"
+    },
+    "cryptoAesCbcFixedDesc": {
+        "message": "Uses standard AES-128-CBC algorithm with fixed IV (0x0)"
     }
 }

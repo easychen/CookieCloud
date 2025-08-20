@@ -20,6 +20,7 @@ interface UploadPayload {
   headers?: string;
   no_cache?: number;
   expire_minutes?: number;
+  crypto_type?: string;
 }
 
 interface DownloadPayload {
@@ -27,6 +28,7 @@ interface DownloadPayload {
   password: string;
   endpoint: string;
   expire_minutes?: number;
+  crypto_type?: string;
 }
 
 function is_firefox(): boolean {
@@ -174,9 +176,9 @@ export async function upload_cookie(payload: UploadPayload): Promise<any> {
     return false;
   }
   // Encrypt cookie with AES
-  const the_key = CryptoJS.MD5(payload.uuid + '-' + payload.password).toString().substring(0, 16);
   const data_to_encrypt = JSON.stringify({ "cookie_data": cookies, "local_storage_data": local_storages, "update_time": new Date() });
-  const encrypted = CryptoJS.AES.encrypt(data_to_encrypt, the_key).toString();
+  const crypto_type = payload.crypto_type || 'legacy';
+  const encrypted = cookie_encrypt(payload.uuid, data_to_encrypt, payload.password, crypto_type);
   const endpoint = payload.endpoint.trim().replace(/\/+$/, '') + '/update';
 
   // get sha256 of the encrypted data
@@ -191,7 +193,8 @@ export async function upload_cookie(payload: UploadPayload): Promise<any> {
 
   const payload2 = {
     uuid: payload.uuid,
-    encrypted: encrypted
+    encrypted: encrypted,
+    crypto_type: crypto_type
   };
   // console.log( endpoint, payload2 );
   try {
@@ -215,8 +218,12 @@ export async function upload_cookie(payload: UploadPayload): Promise<any> {
 }
 
 export async function download_cookie(payload: DownloadPayload): Promise<any> {
-  const { uuid, password, expire_minutes } = payload;
-  const endpoint = payload.endpoint.trim().replace(/\/+$/, '') + '/get/' + uuid;
+  const { uuid, password, expire_minutes, crypto_type } = payload;
+  let endpoint = payload.endpoint.trim().replace(/\/+$/, '') + '/get/' + uuid;
+  // 如果指定了加密算法，添加查询参数
+  if (crypto_type) {
+    endpoint += `?crypto_type=${crypto_type}`;
+  }
   try {
     showBadge("↓", "blue");
     const response = await fetch(endpoint, {
@@ -227,7 +234,8 @@ export async function download_cookie(payload: DownloadPayload): Promise<any> {
     });
     const result = await response.json();
     if (result && result.encrypted) {
-      const { cookie_data, local_storage_data } = cookie_decrypt(uuid, result.encrypted, password);
+      const useCryptoType = crypto_type || result.crypto_type || 'legacy';
+      const { cookie_data, local_storage_data } = cookie_decrypt(uuid, result.encrypted, password, useCryptoType);
       let action = 'done';
       if (cookie_data) {
         for (let domain in cookie_data) {
@@ -288,11 +296,50 @@ export async function download_cookie(payload: DownloadPayload): Promise<any> {
   }
 }
 
-function cookie_decrypt(uuid: string, encrypted: string, password: string): any {
-  const the_key = CryptoJS.MD5(uuid + '-' + password).toString().substring(0, 16);
-  const decrypted = CryptoJS.AES.decrypt(encrypted, the_key).toString(CryptoJS.enc.Utf8);
-  const parsed = JSON.parse(decrypted);
-  return parsed;
+function cookie_decrypt(uuid: string, encrypted: string, password: string, crypto_type: string = 'legacy'): any {
+  const hash = CryptoJS.MD5(uuid + '-' + password).toString();
+  const the_key = hash.substring(0, 16);
+  
+  if (crypto_type === 'aes-128-cbc-fixed') {
+    // 新的标准 AES-128-CBC 算法，使用固定 IV
+    const fixedIv = CryptoJS.enc.Hex.parse('00000000000000000000000000000000'); // 16字节的0
+    const options = {
+      iv: fixedIv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7
+    };
+    // 直接解密原始加密数据
+    const decrypted = CryptoJS.AES.decrypt(encrypted, CryptoJS.enc.Utf8.parse(the_key), options).toString(CryptoJS.enc.Utf8);
+    const parsed = JSON.parse(decrypted);
+    return parsed;
+  } else {
+    // 原有的 legacy 算法
+    const decrypted = CryptoJS.AES.decrypt(encrypted, the_key).toString(CryptoJS.enc.Utf8);
+    const parsed = JSON.parse(decrypted);
+    return parsed;
+  }
+}
+
+function cookie_encrypt(uuid: string, data: string, password: string, crypto_type: string = 'legacy'): string {
+  const hash = CryptoJS.MD5(uuid + '-' + password).toString();
+  const the_key = hash.substring(0, 16);
+  
+  if (crypto_type === 'aes-128-cbc-fixed') {
+    // 新的标准 AES-128-CBC 算法，使用固定 IV
+    const fixedIv = CryptoJS.enc.Hex.parse('00000000000000000000000000000000'); // 16字节的0
+    const options = {
+      iv: fixedIv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7
+    };
+    // 使用原始加密数据，不包含 CryptoJS 格式包装
+    const encrypted = CryptoJS.AES.encrypt(data, CryptoJS.enc.Utf8.parse(the_key), options);
+    return encrypted.ciphertext.toString(CryptoJS.enc.Base64);
+  } else {
+    // 原有的 legacy 算法
+    const encrypted = CryptoJS.AES.encrypt(data, the_key).toString();
+    return encrypted;
+  }
 }
 
 export async function get_local_storage_by_domains(domains: string[] = []): Promise<LocalStorageData> {

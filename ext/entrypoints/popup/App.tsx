@@ -24,6 +24,7 @@ interface ConfigData {
   blacklist: string;
   headers: string;
   expire_minutes: number;
+  crypto_type: string;
 }
 
 const CookieCloudPopup: React.FC = () => {
@@ -38,7 +39,8 @@ const CookieCloudPopup: React.FC = () => {
     with_storage: 1,
     blacklist: "google.com",
     headers: "",
-    expire_minutes: 60 * 24 * 365
+    expire_minutes: 60 * 24 * 365,
+    crypto_type: "legacy"
   });
 
   useEffect(() => {
@@ -267,6 +269,27 @@ const CookieCloudPopup: React.FC = () => {
                   >
                     {browser.i18n.getMessage('generate') || '生成'}
                   </button>
+                </div>
+              </div>
+
+              {/* Crypto Algorithm */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  {browser.i18n.getMessage('cryptoAlgorithm') || '加密算法'}
+                </label>
+                <select
+                  className="form-input"
+                  value={data.crypto_type}
+                  onChange={(e) => handleInputChange('crypto_type', e.target.value)}
+                >
+                  <option value="legacy">{browser.i18n.getMessage('cryptoLegacy') || 'CryptoJS(动态IV)'}</option>
+                  <option value="aes-128-cbc-fixed">{browser.i18n.getMessage('cryptoAesCbcFixed') || 'AES-128-CBC(固定IV)'}</option>
+                </select>
+                <div className="text-xs text-gray-500 mt-1">
+                  {data.crypto_type === 'legacy' 
+                    ? (browser.i18n.getMessage('cryptoLegacyDesc') || '使用CryptoJS加密算法，会动态生成IV')
+                    : (browser.i18n.getMessage('cryptoAesCbcFixedDesc') || '使用标准 AES-128-CBC 算法，IV固定为 0x0')
+                  }
                 </div>
               </div>
 
