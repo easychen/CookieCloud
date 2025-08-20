@@ -151,5 +151,13 @@
     "save":
     {
         "message":"保存"
+    },
+    "copySuccess":
+    {
+        "message":"已复制到剪贴板"
+    },
+    "copyFailed":
+    {
+        "message":"复制失败，请手动复制"
     }
   }

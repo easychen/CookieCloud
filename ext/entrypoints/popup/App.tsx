@@ -3,6 +3,14 @@ import { load_data, save_data } from '../../utils/functions';
 import { handleConfigMessage } from '../../utils/messaging';
 import short_uid from 'short-uuid';
 import browser from 'webextension-polyfill';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+
+// 复制图标 SVG 组件
+const CopyIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+  </svg>
+);
 
 interface ConfigData {
   endpoint: string;
@@ -111,9 +119,19 @@ const CookieCloudPopup: React.FC = () => {
     handleInputChange('password', String(short_uid.generate()));
   };
 
+  // 复制成功回调
+  const onCopySuccess = (type: 'UUID' | 'Password') => {
+    alert(`${type} ${browser.i18n.getMessage('copySuccess') || '已复制到剪贴板'}`);
+  };
+
+  // 复制失败回调
+  const onCopyError = () => {
+    alert(browser.i18n.getMessage('copyFailed') || '复制失败，请手动复制');
+  };
+
   return (
-    <div className="w-96 overflow-x-hidden bg-white rounded-lg shadow-lg">
-      <div className="p-5">
+    <div className="w-96 overflow-x-hidden bg-white rounded-lg shadow-lg flex flex-col h-[600px] relative">
+      <div className="flex-1 overflow-y-auto p-5 pb-20">
         <div className="text-center mb-5 pb-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-800">CookieCloud</h2>
         </div>
@@ -124,7 +142,7 @@ const CookieCloudPopup: React.FC = () => {
             <label className="block text-sm font-medium text-gray-600 mb-2">
               {browser.i18n.getMessage('workingMode') || '工作模式'}
             </label>
-            <div className="space-y-2">
+            <div className="flex flex-wrap gap-4">
               <label className="flex items-center">
                 <input
                   type="radio"
@@ -189,12 +207,25 @@ const CookieCloudPopup: React.FC = () => {
                   {browser.i18n.getMessage('uuid') || 'User KEY · UUID'}
                 </label>
                 <div className="flex">
-                  <input
-                    type="text"
-                    className="form-input flex-1"
-                    value={data.uuid}
-                    onChange={(e) => handleInputChange('uuid', e.target.value)}
-                  />
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      className="form-input pl-10 pr-3"
+                      value={data.uuid}
+                      onChange={(e) => handleInputChange('uuid', e.target.value)}
+                    />
+                    <CopyToClipboard 
+                      text={data.uuid}
+                      onCopy={() => onCopySuccess('UUID')}
+                    >
+                      <button
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        title="复制 UUID"
+                      >
+                        <CopyIcon />
+                      </button>
+                    </CopyToClipboard>
+                  </div>
                   <button
                     className="ml-2 px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
                     onClick={uuidRegen}
@@ -210,13 +241,26 @@ const CookieCloudPopup: React.FC = () => {
                   {browser.i18n.getMessage('syncPassword') || '端对端加密密码'}
                 </label>
                 <div className="flex">
-                  <input
-                    type="password"
-                    className="form-input flex-1"
-                    placeholder={browser.i18n.getMessage('syncPasswordPlaceholder') || '丢失后数据失效，请妥善保管'}
-                    value={data.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
-                  />
+                  <div className="relative flex-1">
+                    <input
+                      type="password"
+                      className="form-input pl-10 pr-3"
+                      placeholder={browser.i18n.getMessage('syncPasswordPlaceholder') || '丢失后数据失效，请妥善保管'}
+                      value={data.password}
+                      onChange={(e) => handleInputChange('password', e.target.value)}
+                    />
+                    <CopyToClipboard 
+                      text={data.password}
+                      onCopy={() => onCopySuccess('Password')}
+                    >
+                      <button
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        title="复制密码"
+                      >
+                        <CopyIcon />
+                      </button>
+                    </CopyToClipboard>
+                  </div>
                   <button
                     className="ml-2 px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
                     onClick={passwordGen}
@@ -337,33 +381,36 @@ const CookieCloudPopup: React.FC = () => {
             </div>
           )}
 
-          {/* Button Group */}
-          <div className="flex justify-between mt-6">
-            <div className="space-x-2">
-              {data.type !== 'pause' && (
-                <>
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => test(browser.i18n.getMessage('syncManual') || '手动同步')}
-                  >
-                    {browser.i18n.getMessage('syncManual') || '手动同步'}
-                  </button>
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => test(browser.i18n.getMessage('test') || '测试')}
-                  >
-                    {browser.i18n.getMessage('test') || '测试'}
-                  </button>
-                </>
-              )}
-            </div>
-            <button
-              className="btn btn-success"
-              onClick={save}
-            >
-              {browser.i18n.getMessage('save') || '保存'}
-            </button>
+        </div>
+      </div>
+      
+      {/* 固定在底部的按钮组 */}
+      <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+        <div className="flex justify-between">
+          <div className="space-x-2">
+            {data.type !== 'pause' && (
+              <>
+                <button
+                  className="btn btn-primary text-sm px-3 py-2"
+                  onClick={() => test(browser.i18n.getMessage('syncManual') || '手动同步')}
+                >
+                  {browser.i18n.getMessage('syncManual') || '手动同步'}
+                </button>
+                <button
+                  className="btn btn-primary text-sm px-3 py-2"
+                  onClick={() => test(browser.i18n.getMessage('test') || '测试')}
+                >
+                  {browser.i18n.getMessage('test') || '测试'}
+                </button>
+              </>
+            )}
           </div>
+          <button
+            className="btn btn-success text-sm px-4 py-2"
+            onClick={save}
+          >
+            {browser.i18n.getMessage('save') || '保存'}
+          </button>
         </div>
       </div>
     </div>
