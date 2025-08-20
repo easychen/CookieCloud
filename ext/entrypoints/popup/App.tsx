@@ -370,6 +370,20 @@ const CookieCloudPopup: React.FC = () => {
                       onChange={(e) => handleInputChange('blacklist', e.target.value)}
                     />
                   </div>
+
+                  {/* Keep Live */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      {browser.i18n.getMessage('cookieKeepLive') || 'Cookie Keep Alive · 选填'}
+                    </label>
+                    <textarea
+                      className="form-textarea"
+                      style={{ height: "60px" }}
+                      placeholder={browser.i18n.getMessage('cookieKeepLivePlaceholder') || '定期刷新URL在后台模拟用户活动。一行一个URL，默认60分钟，可以指定刷新时间与间隔'}
+                      value={data.keep_live}
+                      onChange={(e) => handleInputChange('keep_live', e.target.value)}
+                    />
+                  </div>
                 </>
               )}
             </>
