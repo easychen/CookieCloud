@@ -16,7 +16,7 @@ export default defineConfig({
     host_permissions: [
       '<all_urls>'
     ],
-    version: '0.2.4'
+    version: '0.3.0'
   },
   vite: () => ({
     css: {

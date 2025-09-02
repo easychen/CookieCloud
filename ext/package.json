@@ -1,8 +1,9 @@
 {
-  "name": "wxt-starter",
-  "description": "manifest.json description",
+  "name": "cookie-cloud",
+  "displayName": "CookieCloud",
+  "description": "Sync cookies between browses",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "wxt",

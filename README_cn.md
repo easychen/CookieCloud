@@ -6,6 +6,8 @@
 
 CookieCloud是一个和自架服务器同步Cookie的小工具，可以将浏览器的Cookie及Local storage同步到手机和云端，它内置端对端加密，可设定同步时间间隔。
 
+> 0.3.0 版本改用 wxt 重写了，支持固定 IV 的加密算法，解密时支持更多的标准库，详见 wxt 分支
+
 > 最新版本支持了对同域名下local storage的同步
 
 [Telegram频道](https://t.me/CookieCloudTG) | [Telegram交流群](https://t.me/CookieCloudGroup)
