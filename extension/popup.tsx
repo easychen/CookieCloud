@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { sendToBackground } from "@plasmohq/messaging"
 import type { RequestBody, ResponseBody } from "~background/messages/config"
 import short_uid from 'short-uuid';
@@ -6,35 +6,82 @@ import "./style.scss"
 import { load_data, save_data } from './function';
 import browser from 'webextension-polyfill';
 
+// 自定义通知组件
+function CustomNotification({ message, onClose }) {
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50" style={{
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 9999
+    }}>
+      <div className="bg-white rounded-lg p-4 max-w-sm mx-auto" style={{
+        maxWidth: '90%',
+        wordBreak: 'break-word',
+        overflow: 'auto',
+        maxHeight: '80vh'
+      }}>
+        <div className="mb-4">{message}</div>
+        <div className="text-right">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            确定
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function IndexPopup() {
   let init: Object={"endpoint":"http://127.0.0.1:8088","password":"","interval":10,"domains":"","uuid":String(short_uid.generate()),"type":"up","keep_live":"","with_storage":1,"blacklist":"google.com", "headers": "","expire_minutes":60*24*365};
   const [data, setData] = useState(init);
+  const [notification, setNotification] = useState(null);
+  
+  // 自定义alert函数
+  const showNotification = (message) => {
+    setNotification(message);
+  };
+  
+  const closeNotification = () => {
+    setNotification(null);
+  };
   
   async function test(action=browser.i18n.getMessage('test'))
   {
     console.log("request,begin");
     if( !data['endpoint'] || !data['password'] || !data['uuid'] || !data['type'] )
     {
-      alert(browser.i18n.getMessage("fullMessagePlease"));
+      showNotification(browser.i18n.getMessage("fullMessagePlease"));
       return;
     }
     if( data['type'] == 'pause' )
     {
       // alert('暂停状态不能'+action);
-      alert(browser.i18n.getMessage("actionNotAllowedInPause"));
+      showNotification(browser.i18n.getMessage("actionNotAllowedInPause"));
       return;
     }
-    const ret = await sendToBackground<RequestBody, ResponseBody>({name:"config",body:{payload:{...data,no_cache:1}}});
-    console.log(action+"返回",ret);
-    if( ret && ret['message'] == 'done' )
-    {
-      if( ret['note'] ) 
-        alert(ret['note']);
-      else
-        alert(action+browser.i18n.getMessage('success'));
-    }else
-    {
-      alert(action+browser.i18n.getMessage('failedCheckInfo'));
+    try {
+      const ret = await sendToBackground<RequestBody, ResponseBody>({name:"config",body:{payload:{...data,no_cache:1}}});
+      console.log(action+"返回",ret);
+      if( ret && ret['message'] == 'done' )
+      {
+        if( ret['note'] ) 
+          showNotification(ret['note']);
+        else
+          showNotification(action+browser.i18n.getMessage('success'));
+      }else
+      {
+        showNotification(action+browser.i18n.getMessage('failedCheckInfo'));
+      }
+    } catch (error) {
+      console.error("测试时出错:", error);
+      showNotification(action+browser.i18n.getMessage('failedCheckInfo') + ": " + error.message);
     }
   }
 
@@ -43,17 +90,22 @@ function IndexPopup() {
     if( !data['endpoint'] || !data['password'] || !data['uuid'] || !data['type'] )
     {
       // alert('请填写完整的信息');
-      alert(browser.i18n.getMessage("fullMessagePlease"));
+      showNotification(browser.i18n.getMessage("fullMessagePlease"));
       return;
     }
-    await save_data( "COOKIE_SYNC_SETTING", data );
-    const ret = await load_data("COOKIE_SYNC_SETTING") ;
-    console.log( "load", ret );
-    if( JSON.stringify(ret) == JSON.stringify(data) )
-    {
-      // alert('保存成功');
-      alert(browser.i18n.getMessage("saveSuccess"));
-      window.close();
+    try {
+      await save_data( "COOKIE_SYNC_SETTING", data );
+      const ret = await load_data("COOKIE_SYNC_SETTING") ;
+      console.log( "load", ret );
+      if( JSON.stringify(ret) == JSON.stringify(data) )
+      {
+        // alert('保存成功');
+        showNotification(browser.i18n.getMessage("saveSuccess"));
+        // 不再自动关闭窗口，让用户可以继续操作（如测试配置）
+      }
+    } catch (error) {
+      console.error("保存设置时出错:", error);
+      showNotification(browser.i18n.getMessage("saveFailed") + ": " + error.message);
     }
   }
 
@@ -82,9 +134,10 @@ function IndexPopup() {
     load_config();
   },[]);
   
-  return <div className="w-128 overflow-x-hidden" style={{"width":"360px"}}>
-    <div className="form p-5">
-      <div className="text-line text-gray-600">
+  return <div className="w-128 overflow-x-hidden" style={{"width":"360px", "maxWidth": "100%", "position": "relative"}}>
+    {notification && <CustomNotification message={notification} onClose={closeNotification} />}
+    <div className="form p-5" style={{"maxWidth": "100%", "overflow": "hidden"}}>
+      <div className="text-line text-gray-600" style={{"wordWrap": "break-word", "overflowWrap": "break-word"}}>
         <div className="">{browser.i18n.getMessage('workingMode')}</div>
         <div className="my-2">
         {/*
