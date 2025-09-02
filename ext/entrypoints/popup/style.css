@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded font-medium cursor-pointer transition-all duration-300;
+  }
+  
+  .btn-primary {
+    @apply bg-blue-500 text-white hover:bg-blue-600;
+  }
+  
+  .btn-success {
+    @apply bg-green-500 text-white hover:bg-green-600;
+  }
+  
+  .form-input {
+    @apply w-full px-3 py-2 border-2 border-gray-300 rounded text-sm transition-colors duration-300 focus:outline-none focus:border-blue-500;
+  }
+  
+  .form-textarea {
+    @apply w-full px-3 py-2 border-2 border-gray-300 rounded text-sm transition-colors duration-300 focus:outline-none focus:border-blue-500 resize-y min-h-[60px];
+    font-family: inherit;
+  }
+  
+  .form-select {
+    @apply w-full px-3 py-2 border-2 border-gray-300 rounded text-sm transition-colors duration-300 focus:outline-none focus:border-blue-500;
+  }
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+}
+
+.btn-success {
+  background-color: #27ae60;
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #229954;
+}
+
+.overwrite-warning {
+  margin-top: 15px;
+  padding: 12px;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 4px;
+  color: #856404;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.overwrite-warning p {
+  margin: 0;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+  }
+  
+  #app {
+    background: #34495e;
+  }
+  
+  .header {
+    border-bottom-color: #4a5f7a;
+  }
+  
+  .header h2 {
+    color: #ecf0f1;
+  }
+  
+  .form-group label {
+    color: #bdc3c7;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    background-color: #2c3e50;
+    border-color: #4a5f7a;
+    color: #ecf0f1;
+  }
+  
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: #3498db;
+  }
+  
+  .overwrite-warning {
+    background-color: #f39c12;
+    border-color: #e67e22;
+    color: #2c3e50;
+  }
+}

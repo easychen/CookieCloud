@@ -1,0 +1,40 @@
+{
+    "name": "cookiecloud/decrypt-php",
+    "description": "CookieCloud Fixed IV Decryption - PHP Implementation",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "CookieCloud",
+            "email": "info@cookiecloud.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "ext-openssl": "*",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.0|^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "CookieCloud\\Decrypt\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "CookieCloud\\Decrypt\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "decrypt": "php decrypt.php"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

@@ -49,7 +49,7 @@ app.all(`${api_root}/`, (req, res) => {
 
 app.post(`${api_root}/update`, (req, res) => {
     try {
-        const { encrypted, uuid } = req.body;
+        const { encrypted, uuid, crypto_type = 'legacy' } = req.body;
         // none of the fields can be empty
         if (!encrypted || !uuid) {
             logger.warn('Bad Request: Missing required fields');
@@ -57,9 +57,12 @@ app.post(`${api_root}/update`, (req, res) => {
             return;
         }
 
-        // save encrypted to uuid file
+        // save encrypted to uuid file with crypto_type
         const file_path = path.join(data_dir, path.basename(uuid)+'.json');
-        const content = JSON.stringify({"encrypted":encrypted});
+        const content = JSON.stringify({
+            encrypted: encrypted,
+            crypto_type: crypto_type
+        });
         fs.writeFileSync(file_path, content);
         if( fs.readFileSync(file_path) == content )
             res.json({"action":"done"});
@@ -74,6 +77,7 @@ app.post(`${api_root}/update`, (req, res) => {
 app.all(`${api_root}/get/:uuid`, (req, res) => {
     try {
         const { uuid } = req.params;
+        const { crypto_type } = req.query; // 支持通过查询参数指定算法
         // none of the fields can be empty
         if (!uuid) {
             res.status(400).send('Bad Request');
@@ -96,7 +100,9 @@ app.all(`${api_root}/get/:uuid`, (req, res) => {
             // 如果传递了password，则返回解密后的数据
             if( req.body.password )
             {
-                const parsed = cookie_decrypt( uuid, data.encrypted, req.body.password );
+                // 优先使用查询参数指定的算法，其次使用存储的算法，最后使用legacy
+                const useCryptoType = crypto_type || data.crypto_type || 'legacy';
+                const parsed = cookie_decrypt( uuid, data.encrypted, req.body.password, useCryptoType );
                 res.json(parsed);
             }else
             {
@@ -151,12 +157,56 @@ app.listen(port, () => {
     logger.info(`Server start on http://localhost:${port}${api_root}`);
 });
 
-function cookie_decrypt( uuid, encrypted, password )
+function cookie_decrypt( uuid, encrypted, password, crypto_type = 'legacy' )
 {
     const CryptoJS = require('crypto-js');
-    const the_key = CryptoJS.MD5(uuid+'-'+password).toString().substring(0,16);
-    const decrypted = CryptoJS.AES.decrypt(encrypted, the_key).toString(CryptoJS.enc.Utf8);
-    const parsed = JSON.parse(decrypted);
-    return parsed;
+    
+    if (crypto_type === 'aes-128-cbc-fixed') {
+        // 新的标准 AES-128-CBC 算法，使用固定 IV
+        const hash = CryptoJS.MD5(uuid+'-'+password).toString();
+        const the_key = hash.substring(0,16);
+        const fixedIv = CryptoJS.enc.Hex.parse('00000000000000000000000000000000'); // 16字节的0
+        const options = {
+            iv: fixedIv,
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7
+        };
+        // 直接解密原始加密数据
+        const decrypted = CryptoJS.AES.decrypt(encrypted, CryptoJS.enc.Utf8.parse(the_key), options).toString(CryptoJS.enc.Utf8);
+        const parsed = JSON.parse(decrypted);
+        return parsed;
+    } else {
+        // 原有的 legacy 算法
+        const the_key = CryptoJS.MD5(uuid+'-'+password).toString().substring(0,16);
+        const decrypted = CryptoJS.AES.decrypt(encrypted, the_key).toString(CryptoJS.enc.Utf8);
+        const parsed = JSON.parse(decrypted);
+        return parsed;
+    }
+}
+
+function cookie_encrypt( uuid, data, password, crypto_type = 'legacy' )
+{
+    const CryptoJS = require('crypto-js');
+    const data_to_encrypt = JSON.stringify(data);
+    
+    if (crypto_type === 'aes-128-cbc-fixed') {
+        // 新的标准 AES-128-CBC 算法，使用固定 IV
+        const hash = CryptoJS.MD5(uuid+'-'+password).toString();
+        const the_key = hash.substring(0,16);
+        const fixedIv = CryptoJS.enc.Hex.parse('00000000000000000000000000000000'); // 16字节的0
+        const options = {
+            iv: fixedIv,
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7
+        };
+        // 使用原始加密数据，不包含 CryptoJS 格式包装
+        const encrypted = CryptoJS.AES.encrypt(data_to_encrypt, CryptoJS.enc.Utf8.parse(the_key), options);
+        return encrypted.ciphertext.toString(CryptoJS.enc.Base64);
+    } else {
+        // 原有的 legacy 算法
+        const the_key = CryptoJS.MD5(uuid+'-'+password).toString().substring(0,16);
+        const encrypted = CryptoJS.AES.encrypt(data_to_encrypt, the_key).toString();
+        return encrypted;
+    }
 }
   

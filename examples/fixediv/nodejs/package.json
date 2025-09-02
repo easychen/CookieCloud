@@ -1,0 +1,24 @@
+{
+  "name": "cookiecloud-decrypt-nodejs",
+  "version": "1.0.0",
+  "description": "CookieCloud Fixed IV Decryption - Node.js Implementation",
+  "main": "decrypt.js",
+  "scripts": {
+    "start": "node decrypt.js",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "cookiecloud",
+    "decrypt",
+    "aes",
+    "cbc",
+    "crypto"
+  ],
+  "author": "CookieCloud",
+  "license": "MIT",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

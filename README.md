@@ -6,6 +6,9 @@
 
 CookieCloud is a small tool for syncing cookies with your self-hosted server, allowing you to synchronize browser cookies and local storage to your phone and cloud. It features built-in end-to-end encryption and allows you to set a synchronization interval.
 
+> Since version 0.3.0, the project has been rewritten using **wxt**. It now supports encryption algorithms with a fixed IV and supports more standard libraries for decryption. See the **wxt** branch for details.
+
+
 > The latest version now supports synchronization of local storage under the same domain name.
 
 [Telegram channel](https://t.me/CookieCloudTG) | [Telegram group](https://t.me/CookieCloudGroup)

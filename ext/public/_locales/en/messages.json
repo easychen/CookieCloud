@@ -1,0 +1,141 @@
+{
+    "appTitle": {
+        "message": "CookieCloud"
+    },
+    "appDesc": {
+        "message": "CookieCloud is a tool for syncing browser cookies to a self-hosted server.",
+        "description": "Uses end-to-end encryption to ensure your cookies are secure."
+    },
+    "test": {
+        "message": "Test"
+    },
+    "fullMessagePlease": {
+        "message": "Please fill in all the information"
+    },
+    "actionNotAllowedInPause": {
+        "message": "This action cannot be performed while paused"
+    },
+    "success": {
+        "message": "Success"
+    },
+    "failedCheckInfo": {
+        "message": "Failed, please check if the information entered is correct"
+    },
+    "saveSucess": {
+        "message": "Save Successful"
+    },
+    "workingMode": {
+        "message": "Mode"
+    },
+    "upToServer": {
+        "message": "Upload to Server"
+    },
+    "overwriteToBrowser": {
+        "message": "Overwrite to Browser"
+    },
+    "pauseSync": {
+        "message": "Pause Sync"
+    },
+    "overwriteModeDesp": {
+        "message": "Overwrite mode is mainly used for cloud and read-only browsers. Overwriting Cookies and Local Storage may cause current browser login and modification operations to fail; moreover, some websites do not allow the same cookie to be logged in on multiple browsers at the same time, which may cause account logouts on other browsers."
+    },
+    "serverHost": {
+        "message": "Server Address"
+    },
+    "serverHostPlaceholder": {
+        "message": "Please enter server address"
+    },
+    "uuid": {
+        "message": "User KEY · UUID"
+    },
+    "uuidPlaceholder": {
+        "message": "Unique User ID"
+    },
+    "reGenerate": {
+        "message": "Regenerate"
+    },
+    "syncPassword": {
+        "message": "End-to-End Encryption Password"
+    },
+    "syncPasswordPlaceholder": {
+        "message": "Data will be unable to be decrypted if lost"
+    },
+    "generate": {
+        "message": "Generate"
+    },
+    "cookieExpireMinutes": {
+        "message": "Cookie Expiry Time · Minutes"
+    },
+    "cookieExpireMinutesPlaceholder": {
+        "message": "0 means it expires immediately after closing the browser"
+    },
+    "syncTimeInterval": {
+        "message": "Sync Interval · Minutes"
+    },
+    "syncTimeIntervalPlaceholder": {
+        "message": "At least 10 minutes"
+    },
+    "syncLocalStorageOrNot": {
+        "message": "Sync Local Storage?"
+    },
+    "yes": {
+        "message": "Yes"
+    },
+    "no": {
+        "message": "No"
+    },
+    "requestHeader": {
+        "message": "Request Header · Optional"
+    },
+    "requestHeaderPlaceholder": {
+        "message": "Append Header to request for server authentication etc., one per line, format as 'Key:Value', no spaces allowed"
+    },
+    "syncDomainKeyword": {
+        "message": "Sync Domain Keyword · Optional"
+    },
+    "syncDomainKeywordPlaceholder": {
+        "message": "One per line, sync all domains containing the keyword, e.g., qq.com, jd.com will include all subdomains, leave blank to sync all by default"
+    },
+    "syncDomainBlacklist": {
+        "message": "Sync Domain Blacklist · Optional"
+    },
+    "syncDomainBlacklistPlaceholder": {
+        "message": "The blacklist only takes effect when the sync domain keyword is empty. One domain per line, matching domains will not be synced"
+    },
+    "cookieKeepLive": {
+        "message": "Cookie Keep Alive · Optional"
+    },
+    "cookieKeepLivePlaceholder": {
+        "message": "Periodically refresh URL in the background to simulate user activity. One URL per line, default 60 minutes, can specify refresh time with URL|minutes format"
+    },
+    "keepLiveStop": {
+        "message": "Pause Sync and Keep Alive"
+    },
+    "syncManual": {
+        "message": "Manual Sync"
+    },
+    "save": {
+        "message": "Save"
+    },
+    "copySuccess": {
+        "message": "Copied to clipboard"
+    },
+    "copyFailed": {
+        "message": "Copy failed, please copy manually"
+    },
+    "cryptoAlgorithm": {
+        "message": "Encryption Algorithm"
+    },
+    "cryptoLegacy": {
+        "message": "CryptoJS (Dynamic IV)"
+    },
+    "cryptoAesCbcFixed": {
+        "message": "AES-128-CBC (Fixed IV)"
+    },
+    "cryptoLegacyDesc": {
+        "message": "Uses CryptoJS encryption algorithm with dynamic IV generation"
+    },
+    "cryptoAesCbcFixedDesc": {
+        "message": "Uses standard AES-128-CBC algorithm with fixed IV (0x0)"
+    }
+}
