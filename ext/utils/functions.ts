@@ -1,6 +1,5 @@
 import CryptoJS from 'crypto-js';
 import { gzip } from 'pako';
-import browser from 'webextension-polyfill';
 
 interface CookieData {
   [domain: string]: any[];
@@ -35,9 +34,6 @@ function is_firefox(): boolean {
   return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 }
 
-function is_safari(): boolean {
-  return navigator.userAgent.toLowerCase().indexOf('safari') > -1;
-}
 
 export async function browser_set(key: string, value: any): Promise<void> {
   return await browser.storage.local.set({ [key]: value });
@@ -202,7 +198,7 @@ export async function upload_cookie(payload: UploadPayload): Promise<any> {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: headers,
-      body: gzip(JSON.stringify(payload2))
+      body: gzip(JSON.stringify(payload2)) as any
     });
     const result = await response.json();
 
@@ -419,17 +415,9 @@ export function sleep(ms: number): Promise<void> {
 }
 
 export function showBadge(text: string, color: string = "red", delay: number = 5000): void {
-  if (is_firefox()) {
-    browser.browserAction.setBadgeText({ text: text });
-    browser.browserAction.setBadgeBackgroundColor({ color: color });
+  (browser.action ?? browser.browserAction).setBadgeText({ text: text });
+  (browser.action ?? browser.browserAction).setBadgeBackgroundColor({ color: color });
     setTimeout(() => {
-      browser.browserAction.setBadgeText({ text: '' });
+      (browser.action ?? browser.browserAction).setBadgeText({ text: '' });
     }, delay);
-  } else {
-    browser.action.setBadgeText({ text: text });
-    browser.action.setBadgeBackgroundColor({ color: color });
-    setTimeout(() => {
-      browser.action.setBadgeText({ text: '' });
-    }, delay);
-  }
 }

@@ -3,3 +3,4 @@ node_modules/
 data/
 logs/
 ref/
+.DS_Store

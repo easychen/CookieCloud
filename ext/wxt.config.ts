@@ -2,6 +2,7 @@ import { defineConfig } from 'wxt';
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
+  modules: ['@wxt-dev/webextension-polyfill'],
   manifest: {
     name: '__MSG_appTitle__',
     description: '__MSG_appDesc__',
@@ -15,8 +16,7 @@ export default defineConfig({
     ],
     host_permissions: [
       '<all_urls>'
-    ],
-    version: '0.3.0'
+    ]
   },
   vite: () => ({
     css: {
