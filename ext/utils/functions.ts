@@ -419,9 +419,17 @@ export function sleep(ms: number): Promise<void> {
 }
 
 export function showBadge(text: string, color: string = "red", delay: number = 5000): void {
-  browser.action.setBadgeText({ text: text });
-  browser.action.setBadgeBackgroundColor({ color: color });
-  setTimeout(() => {
-    browser.action.setBadgeText({ text: '' });
-  }, delay);
+  if (is_firefox()) {
+    browser.browserAction.setBadgeText({ text: text });
+    browser.browserAction.setBadgeBackgroundColor({ color: color });
+    setTimeout(() => {
+      browser.browserAction.setBadgeText({ text: '' });
+    }, delay);
+  } else {
+    browser.action.setBadgeText({ text: text });
+    browser.action.setBadgeBackgroundColor({ color: color });
+    setTimeout(() => {
+      browser.action.setBadgeText({ text: '' });
+    }, delay);
+  }
 }
