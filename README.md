@@ -55,7 +55,7 @@ We apologize for any inconvenience this may cause 🙇🏻‍♂️
 - <http://nastool.cn:8088> provided by [nastools](https://github.com/jxxghp/nas-tools)
 - <https://cookies.xm.mk> provided by [Xm798](https://github.com/Xm798)
 - <https://cookie.xy213.cn> provided by [xuyan0213](https://github.com/xuyan0213)
-- <https://cookie-cloud.vantis-space.com> provided by [vantis](https://github.com/vantis-zh)
+- <https://cookie-cloud.vantiszh.com> provided by [vantis](https://github.com/vantis-zh)
 - <https://cookiecloud.25wz.cn> provided by [wuquejs](https://github.com/wuquejs)
 - <https://cookiecloud.zhensnow.uk> provided by [YeTianXingShi](https://github.com/YeTianXingShi)
 - <https://cookiecloud.ddsrem.com> provided by [DDSRem](https://github.com/DDS-Derek)
