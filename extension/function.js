@@ -150,7 +150,7 @@ export async function upload_cookie( payload )
     const blacklist = payload['blacklist']?.trim().length > 0 ? payload['blacklist']?.trim().split("\n") : [];
 
     const cookies = await get_cookie_by_domains( domains, blacklist );
-    const with_storage = payload['with_storage'] || 0;
+    const with_storage = Number(payload['with_storage']) === 1;
     const local_storages = with_storage ? await get_local_storage_by_domains( domains ) : {};
 
     let headers = { 'Content-Type': 'application/json', 'Content-Encoding': 'gzip' }
