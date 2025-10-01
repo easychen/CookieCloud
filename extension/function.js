@@ -143,7 +143,7 @@ export async function upload_cookie( payload )
     if (!password || !uuid) {
         alert("错误的参数");
         showBadge("err");
-        return false;
+        return { action: false, note: "错误的参数" };
     }
     const domains = payload['domains']?.trim().length > 0 ? payload['domains']?.trim().split("\n") : [];
 
@@ -171,7 +171,7 @@ export async function upload_cookie( payload )
     } catch (error) {
         console.log("error", error);
         showBadge("err");
-        return false;
+        return { action: false, note: error.message };
     } 
     // 用aes对cookie进行加密
     const the_key = CryptoJS.MD5(payload['uuid']+'-'+payload['password']).toString().substring(0,16);
@@ -211,7 +211,7 @@ export async function upload_cookie( payload )
     } catch (error) {
         console.log("error", error);
         showBadge("err");
-        return false;
+        return { action: false, note: error.message };
     }  
 }
 
@@ -297,7 +297,7 @@ export async function download_cookie(payload)
     } catch (error) {
         console.log("error", error);
         showBadge("err");
-        return false;
+        return { action: false, note: error.message };
     }
 }
 
