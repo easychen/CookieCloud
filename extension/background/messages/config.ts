@@ -13,12 +13,23 @@ export type ResponseBody = {
  
 export const handler: PlasmoMessaging.MessageHandler<RequestBody,
 ResponseBody> = async (req, res) => {
-    // 获得cookie，并进行过滤
-    const payload = req.body.payload;
-    const result = (payload['type'] && payload['type'] == 'down') ?  await download_cookie(payload) : await upload_cookie(payload);
-    res.send({
-        message: result['action'],
-        note: result['note'],
-    })   
+    try {
+        // 获得cookie，并进行过滤
+        const payload = req.body.payload;
+        const result = (payload['type'] && payload['type'] == 'down') ?  await download_cookie(payload) : await upload_cookie(payload);
+        
+        // 确保在函数结束前完成响应发送
+        res.send({
+            message: result && result['action'] ? result['action'] : 'error',
+            note: result && result['note'] ? result['note'] : null,
+        });
+    } catch (error) {
+        console.error("处理消息时出错:", error);
+        // 确保即使出错也能发送响应
+        res.send({
+            message: 'error',
+            note: `操作失败: ${error.message}`,
+        });
+    }
 }
 

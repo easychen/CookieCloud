@@ -35,33 +35,45 @@ export async function browser_remove( key )
 
 export async function storage_set( key, value )
 {
-    return new Promise((resolve, reject) => {
-        chrome.storage.local.set( {[key]:value}, function () {
-          return resolve(true);
-        });
-      });
+    if (is_firefox()) {
+        return await browser_set(key, value);
+    } else {
+        return new Promise((resolve, reject) => {
+            chrome.storage.local.set( {[key]:value}, function () {
+              return resolve(true);
+            });
+          });
+    }
 }
 
 export async function storage_get( key )
 {
-    return new Promise((resolve, reject) => {
-        chrome.storage.local.get([key], function (result) {
-          if (result[key] === undefined) {
-            resolve(null);
-          } else {
-            resolve(result[key]);
-          }
-        });
-      });
+    if (is_firefox()) {
+        return await browser_get(key);
+    } else {
+        return new Promise((resolve, reject) => {
+            chrome.storage.local.get([key], function (result) {
+              if (result[key] === undefined) {
+                resolve(null);
+              } else {
+                resolve(result[key]);
+              }
+            });
+          });
+    }
 }
 
 export async function storage_remove( key )
 {
-    return new Promise((resolve, reject) => {
-        chrome.storage.local.remove([key], function (result) {
-            resolve(result);
-        });
-      });
+    if (is_firefox()) {
+        return await browser_remove(key);
+    } else {
+        return new Promise((resolve, reject) => {
+            chrome.storage.local.remove([key], function (result) {
+                resolve(result);
+            });
+          });
+    }
 }
 
 export async function browser_load_all(prefix=null)
@@ -89,25 +101,29 @@ export async function browser_load_all(prefix=null)
 
 export async function load_all(prefix=null)
 {
-    return new Promise((resolve, reject) => {
-        chrome.storage.local.get(null, function (result) {
-            let ret = result;
-            // 只返回以prefix开头的key对应的属性
-            if( prefix )
-            {
-                ret = {};
-                for( let key in result )
+    if (is_firefox()) {
+        return await browser_load_all(prefix);
+    } else {
+        return new Promise((resolve, reject) => {
+            chrome.storage.local.get(null, function (result) {
+                let ret = result;
+                // 只返回以prefix开头的key对应的属性
+                if( prefix )
                 {
-                    if( key.startsWith(prefix) )
+                    ret = {};
+                    for( let key in result )
                     {
-                        // remove prefix from key
-                        ret[key.substring(prefix.length)] = JSON.parse(result[key])??result[key];
+                        if( key.startsWith(prefix) )
+                        {
+                            // remove prefix from key
+                            ret[key.substring(prefix.length)] = JSON.parse(result[key])??result[key];
+                        }
                     }
                 }
-            }
-            resolve(ret);
-        });
-      });
+                resolve(ret);
+            });
+          });
+    }
 }
 
 export async function load_data( key  )
@@ -303,7 +319,7 @@ export async function download_cookie(payload)
 
 function cookie_decrypt( uuid, encrypted, password )
 {
-    const CryptoJS = require('crypto-js');
+    // 使用已导入的CryptoJS，而不是require
     const the_key = CryptoJS.MD5(uuid+'-'+password).toString().substring(0,16);
     const decrypted = CryptoJS.AES.decrypt(encrypted, the_key).toString(CryptoJS.enc.Utf8);
     const parsed = JSON.parse(decrypted);
@@ -406,9 +422,40 @@ export function sleep(ms) {
 }
 
 export function showBadge(text, color = "red", delay = 5000) {
-    chrome.action.setBadgeText({text:text});
-    chrome.action.setBadgeBackgroundColor({color:color});
-    setTimeout(() => {
-        chrome.action.setBadgeText({ text: '' });
-    }, delay);
+    try {
+        if (is_firefox()) {
+            // Firefox MV2 使用 browserAction API
+            if (browser.browserAction) {
+                browser.browserAction.setBadgeText({text:text});
+                browser.browserAction.setBadgeBackgroundColor({color:color});
+                setTimeout(() => {
+                    browser.browserAction.setBadgeText({ text: '' });
+                }, delay);
+            } else if (browser.action) {
+                // Firefox MV3 使用 action API
+                browser.action.setBadgeText({text:text});
+                browser.action.setBadgeBackgroundColor({color:color});
+                setTimeout(() => {
+                    browser.action.setBadgeText({ text: '' });
+                }, delay);
+            }
+        } else {
+            // Chrome 使用 action API (MV3) 或 browserAction API (MV2)
+            if (chrome.action) {
+                chrome.action.setBadgeText({text:text});
+                chrome.action.setBadgeBackgroundColor({color:color});
+                setTimeout(() => {
+                    chrome.action.setBadgeText({ text: '' });
+                }, delay);
+            } else if (chrome.browserAction) {
+                chrome.browserAction.setBadgeText({text:text});
+                chrome.browserAction.setBadgeBackgroundColor({color:color});
+                setTimeout(() => {
+                    chrome.browserAction.setBadgeText({ text: '' });
+                }, delay);
+            }
+        }
+    } catch (error) {
+        console.error("设置徽章出错:", error);
+    }
 }
