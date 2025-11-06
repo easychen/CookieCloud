@@ -29,7 +29,7 @@ interface ConfigData {
 
 const CookieCloudPopup: React.FC = () => {
   const [data, setData] = useState<ConfigData>({
-    endpoint: "http://127.0.0.1:8088",
+    endpoint: "https://ccc.ft07.com",
     password: "",
     interval: 10,
     domains: "",

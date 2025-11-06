@@ -44,6 +44,13 @@ We apologize for any inconvenience this may cause 🙇🏻‍♂️
 
 ## Server Side
 
+### Official Test Server
+
+> For testing purposes only. Stability is not guaranteed. It is recommended to set up your own server to further enhance data security.
+
+* [https://ccc.ft07.com](https://ccc.ft07.com)
+
+
 ### Third Party
 
 > Free server-side services provided by third parties are available for trial. Stability is determined by the third parties. We appreciate their sharing 👏
