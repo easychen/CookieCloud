@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base tweaks for a refined dark look. Comments in English as requested. */
+:root {
+  color-scheme: dark;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+/* Smooth rendering */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Utility layers */
+@layer utilities {
+  .gradient-ring {
+    background-image: radial-gradient(1200px 600px at 50% -10%, rgba(71, 195, 250, 0.12), transparent 60%),
+      radial-gradient(600px 600px at 85% 10%, rgba(107, 211, 255, 0.08), transparent 60%),
+      radial-gradient(800px 600px at 10% 20%, rgba(53, 168, 218, 0.1), transparent 60%);
+  }
+}
+
+/* Hover border glow: a light dot traveling along the border */
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes rotate-border {
+  to { --angle: 360deg; }
+}
+
+.hover-border-glow {
+  position: relative;
+}
+
+.hover-border-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px; /* overlap the border */
+  padding: 2px; /* thickness of the glow border */
+  border-radius: 0.75rem; /* match rounded-xl */
+  background: conic-gradient(from var(--angle), transparent 88%, rgba(71, 195, 250, 1), transparent 100%);
+  /* mask out the inner area, leaving only the border ring visible */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity .2s ease;
+  pointer-events: none;
+  z-index: 2; /* keep glow ring above gradient layer */
+  filter: drop-shadow(0 0 3px rgba(71, 195, 250, 0.45));
+}
+
+.hover-border-glow:hover::before {
+  opacity: 1;
+  animation: rotate-border 2.8s linear infinite;
+}
+
+/* Hover card gradient: subtle background bloom similar to page top */
+.hover-card-gradient {
+  position: relative;
+  overflow: hidden;
+}
+
+.hover-card-gradient::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background-image: radial-gradient(800px 400px at 50% -10%, rgba(71, 195, 250, 0.14), transparent 60%),
+    radial-gradient(500px 400px at 85% 10%, rgba(107, 211, 255, 0.10), transparent 60%),
+    radial-gradient(600px 400px at 10% 20%, rgba(53, 168, 218, 0.12), transparent 60%);
+  opacity: 0;
+  transition: opacity .25s ease;
+  pointer-events: none;
+  z-index: 1; /* sit below glow ring, above base background */
+}
+
+.hover-card-gradient:hover::after {
+  opacity: .35;
+}
