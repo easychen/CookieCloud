@@ -489,4 +489,187 @@ const main = async (env: Record<string, string>) => {
 
 Translated by GPT4
 
+## C# Reference
+```c#
+public class CookieHelper
+{
+    public async static Task<List<CookieItem>> CloudCookie(string host, string uuid, string password)
+    {
+        string url = host + "/get/" + uuid;
+
+        using (HttpClient client = new HttpClient())
+        {
+            HttpResponseMessage ret = await client.GetAsync(url);
+            ret.EnsureSuccessStatusCode(); // Throw exception if not successful
+
+            string jsonString = await ret.Content.ReadAsStringAsync();
+            dynamic json = JsonConvert.DeserializeObject(jsonString);
+
+            List<CookieItem> cookies = new List<CookieItem>();
+
+            if (json != null && json.encrypted != null)
+            {
+                var decryptedData = CookieDecrypt(uuid, json.encrypted.ToString(), password);
+
+                if (decryptedData?.cookie_data != null)
+                {
+                    foreach (var cookieGroup in decryptedData.cookie_data)
+                    {
+                        if (cookieGroup.Value is Newtonsoft.Json.Linq.JArray cookieArray)
+                        {
+                            cookies.AddRange(cookieArray.Select(item =>
+                            {
+                                var cookie = item.ToObject<CookieItem>();
+                                if (cookie.sameSite == "unspecified")
+                                {
+                                    cookie.sameSite = "Lax";
+                                }
+                                return cookie;
+                            }));
+                        }
+                    }
+                }
+            }
+
+            return cookies;
+        }
+    }
+
+    public static DecryptedData CookieDecrypt(string uuid, string encrypted, string password)
+    {
+        byte[] decoded = Convert.FromBase64String(encrypted);
+
+        // Console.WriteLine(Encoding.UTF8.GetString(decoded)[..16]);
+
+        // 提取 Salted 前缀 + 8字节 salt
+        byte[] salt = decoded[8..16];
+        byte[] cipherText = decoded[16..];
+
+        // 生成密钥和 IV
+        byte[] passwordHash = MD5.HashData(Encoding.UTF8.GetBytes($"{uuid}-{password}"));
+        string passwordStr = BitConverter.ToString(passwordHash).Replace("-", "").ToLower()[..16];
+        byte[] passwordBytes = Encoding.UTF8.GetBytes(passwordStr);
+
+        (byte[] key, byte[] iv) = EvpKDF(passwordBytes, salt, 1);
+
+        // AES-CBC 解密
+        byte[] decrypted = DecryptAES(cipherText, key, iv);
+        
+
+        var descStr = Encoding.UTF8.GetString(decrypted);
+        if (!string.IsNullOrEmpty(descStr))
+        {
+            try
+            {
+                return JsonConvert.DeserializeObject<DecryptedData>(descStr);
+            }
+            catch (JsonException ex)
+            {
+                Log.Error(ex, "JSON Deserialization Error:");
+                return null; // or throw the exception if appropriate
+            }
+
+        }
+        else
+        {
+            Log.Error("Decryption Failed.");
+            return null;
+        }
+
+        return new DecryptedData();
+    }
+
+    public static string CalculateMD5Hash(string input)
+    {
+        // Use input string to calculate MD5 hash
+        using (MD5 md5 = MD5.Create())
+        {
+            byte[] inputBytes = Encoding.ASCII.GetBytes(input);
+            byte[] hashBytes = md5.ComputeHash(inputBytes);
+
+            // Convert the byte array to hexadecimal string
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < hashBytes.Length; i++)
+            {
+                sb.Append(hashBytes[i].ToString("X2"));
+            }
+            return sb.ToString();
+        }
+    }
+
+    //deno
+    // EVP_BytesToKey 实现 (MD5 迭代)
+    private static (byte[] key, byte[] iv) EvpKDF(byte[] password, byte[] salt, int iterations)
+    {
+        int keySize = 32;
+        int ivSize = 16;
+        int totalSize = keySize + ivSize;
+
+        byte[] derivedKey = new byte[totalSize];
+        byte[] digest = Array.Empty<byte>();
+        int currentBlock = 0;
+        int hashLength = 16;
+
+        using MD5 md5 = MD5.Create();
+
+        while (currentBlock * hashLength < totalSize)
+        {
+            byte[] data = new byte[digest.Length + password.Length + salt.Length];
+            Buffer.BlockCopy(digest, 0, data, 0, digest.Length);
+            Buffer.BlockCopy(password, 0, data, digest.Length, password.Length);
+            Buffer.BlockCopy(salt, 0, data, digest.Length + password.Length, salt.Length);
+
+            digest = md5.ComputeHash(data);
+            for (int i = 1; i < iterations; i++)
+            {
+                digest = md5.ComputeHash(digest);
+            }
+
+            Buffer.BlockCopy(digest, 0, derivedKey, currentBlock * hashLength, Math.Min(digest.Length, totalSize - currentBlock * hashLength));
+            currentBlock++;
+        }
+
+        byte[] key = derivedKey[..keySize];
+        byte[] iv = derivedKey[keySize..];
+
+        return (key, iv);
+    }
+
+    // AES-CBC 解密
+    private static byte[] DecryptAES(byte[] cipherText, byte[] key, byte[] iv)
+    {
+        using Aes aes = Aes.Create();
+        aes.Key = key;
+        aes.IV = iv;
+        aes.Mode = CipherMode.CBC;
+        aes.Padding = PaddingMode.PKCS7;
+
+        using ICryptoTransform decryptor = aes.CreateDecryptor();
+        return decryptor.TransformFinalBlock(cipherText, 0, cipherText.Length);
+    }
+
+
+    // Data structures to represent the decrypted data
+    public class DecryptedData
+    {
+        public Dictionary<string, Newtonsoft.Json.Linq.JArray> cookie_data { get; set; }
+        public object local_storage_data { get; set; } // Adjust type as needed
+    }
+
+    public class CookieItem
+    {
+        public string domain { get; set; }
+        public string expires { get; set; }
+        public bool hostOnly { get; set; }
+        public string name { get; set; }
+        public string path { get; set; }
+        public string sameSite { get; set; }
+        public bool secure { get; set; }
+        public bool session { get; set; }
+        public string storeId { get; set; }
+        public string value { get; set; }
+    }
+}
+```
+translate by ChatGpt from `Deno Reference`
 
