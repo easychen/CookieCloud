@@ -7,7 +7,7 @@ import { load_data, save_data } from './function';
 import browser from 'webextension-polyfill';
 
 function IndexPopup() {
-  let init: Object={"endpoint":"http://127.0.0.1:8088","password":"","interval":10,"domains":"","uuid":String(short_uid.generate()),"type":"up","keep_live":"","with_storage":1,"blacklist":"google.com", "headers": "","expire_minutes":60*24*365};
+  let init: Object={"endpoint":"http://127.0.0.1:8088","password":"","interval":10,"domains":"","uuid":String(short_uid.generate()),"type":"up","keep_live":"","with_storage":1,"strict_domain":0,"blacklist":"google.com", "headers": "","expire_minutes":60*24*365};
   const [data, setData] = useState(init);
   
   async function test(action=browser.i18n.getMessage('test'))
@@ -150,6 +150,13 @@ function IndexPopup() {
 
         <div className="">{browser.i18n.getMessage('syncDomainKeyword')}</div>
         <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder={browser.i18n.getMessage('syncDomainKeywordPlaceholder')}  onChange={e=>onChange('domains',e)} value={data['domains']}/>
+
+        <div className="">{browser.i18n.getMessage('strictDomainMatch') || '严格域名匹配（不含子域）'}</div>
+        <div className="my-2 flex flex-row items-center">
+        <label className="mr-2"><input type="radio" name="strict_domain" value="1" checked={data['strict_domain'] == 1} onChange={e=>onChange('strict_domain',e)} /> {browser.i18n.getMessage('yes')}</label>
+        <label className="mr-2"><input type="radio" name="strict_domain" value="0" checked={data['strict_domain'] == 0 || !data['strict_domain']} onChange={e=>onChange('strict_domain',e)} /> {browser.i18n.getMessage('no')}</label>
+        </div>
+        <div className="text-gray-400 text-xs">{browser.i18n.getMessage('strictDomainMatchDesc') || '开启后域名关键词按完全相等匹配，不包含子域'}</div>
 
         <div className="">{browser.i18n.getMessage('syncDomainBlacklist')}</div>
         <textarea className="border-1  my-2 p-2 rounded w-full" style={{"height":"60px"}} placeholder={browser.i18n.getMessage('syncDomainBlacklistPlaceholder')}  onChange={e=>onChange('blacklist',e)} value={data['blacklist']}/>

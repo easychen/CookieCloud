@@ -21,6 +21,7 @@ interface ConfigData {
   type: string;
   keep_live: string;
   with_storage: number;
+  strict_domain: number;
   blacklist: string;
   headers: string;
   expire_minutes: number;
@@ -37,6 +38,7 @@ const CookieCloudPopup: React.FC = () => {
     type: "up",
     keep_live: "",
     with_storage: 1,
+    strict_domain: 0,
     blacklist: "google.com",
     headers: "",
     expire_minutes: 60 * 24 * 365,
@@ -379,6 +381,40 @@ const CookieCloudPopup: React.FC = () => {
                       value={data.domains}
                       onChange={(e) => handleInputChange('domains', e.target.value)}
                     />
+                  </div>
+
+                  {/* Strict Domain Match */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      {browser.i18n.getMessage('strictDomainMatch') || '严格域名匹配（不含子域）'}
+                    </label>
+                    <div className="flex items-center space-x-6">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="strict_domain"
+                          value="1"
+                          checked={data.strict_domain === 1}
+                          onChange={(e) => handleInputChange('strict_domain', parseInt(e.target.value))}
+                          className="mr-2"
+                        />
+                        {browser.i18n.getMessage('yes') || '是'}
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="strict_domain"
+                          value="0"
+                          checked={data.strict_domain === 0}
+                          onChange={(e) => handleInputChange('strict_domain', parseInt(e.target.value))}
+                          className="mr-2"
+                        />
+                        {browser.i18n.getMessage('no') || '否'}
+                      </label>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {browser.i18n.getMessage('strictDomainMatchDesc') || '开启后域名关键词按完全相等匹配，不包含子域'}
+                    </p>
                   </div>
 
                   {/* Blacklist */}

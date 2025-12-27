@@ -7,16 +7,25 @@ window.addEventListener("load", async () => {
     // 获得当前域名
     const host = window.location.hostname;
     const config = await load_data("COOKIE_SYNC_SETTING") ;
-    if( config?.domains )
+    const domains = String(config?.domains||'').split("\n").map( line => line.trim() ).filter( line => line.length > 0 );
+    if( domains.length > 0 )
     {
-        const domains = config.domains?.trim().split("\n");
-        // 检查 domain 是否部分匹配 domains的每一个域名
+        const host_normalized = host.trim().toLowerCase().replace(/^\./, '');
+        // 检查 domain 是否匹配 domains的每一个域名
         let matched = false;
+        const strict_domain = Number(config?.strict_domain) === 1;
         for(const domain of domains)
         {
-            if( host.includes(domain) ) matched = true;
+            const domain_normalized = String(domain).trim().toLowerCase().replace(/^\./, '');
+            if( strict_domain )
+            {
+                if( host_normalized === domain_normalized ) matched = true;
+            }else
+            {
+                if( host.includes(domain) ) matched = true;
+            }
         }
-        if( domains.length > 0 && !matched ) return false;
+        if( !matched ) return false;
     }
 
     if( config?.type && config.type == 'down' )
