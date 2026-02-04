@@ -1,5 +1,5 @@
 import "@plasmohq/messaging/background";
-import { upload_cookie, download_cookie, load_data, save_data, sleep } from '../function';
+import { upload_cookie, download_cookie, load_config, sleep } from '../function';
 import browser from 'webextension-polyfill';
 
 export const life = 42
@@ -32,7 +32,7 @@ browser.alarms.onAlarm.addListener( async a =>
     if( a.name == 'bg_1_minute' )
     {
         // console.log( 'bg_1_minute' );
-        const config = await load_data("COOKIE_SYNC_SETTING") ;
+        const config = await load_config() ;
         if( config )
         {
             if( config.type && config.type == 'pause')

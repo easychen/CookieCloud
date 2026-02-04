@@ -26,7 +26,7 @@
     {
         "message":"失败，请检查填写的信息是否正确"
     },
-    "saveSucess":
+    "saveSuccess":
     {
         "message":"保存成功"
     },
@@ -100,6 +100,122 @@
     {
         "message":"是否同步Local Storage"
     },
+    "storageType":
+    {
+        "message":"存储方式"
+    },
+    "storageTypeServer":
+    {
+        "message":"自建服务器"
+    },
+    "storageTypeS3":
+    {
+        "message":"S3 / S3兼容"
+    },
+    "storageTypeWebDAV":
+    {
+        "message":"WebDAV"
+    },
+    "webdavEndpoint":
+    {
+        "message":"WebDAV地址"
+    },
+    "webdavEndpointPlaceholder":
+    {
+        "message":"例如: https://dav.example.com/remote.php/dav/files/user"
+    },
+    "webdavUsername":
+    {
+        "message":"WebDAV用户名"
+    },
+    "webdavUsernamePlaceholder":
+    {
+        "message":"用户名"
+    },
+    "webdavPassword":
+    {
+        "message":"WebDAV密码"
+    },
+    "webdavPasswordPlaceholder":
+    {
+        "message":"密码或应用专用密码"
+    },
+    "webdavPath":
+    {
+        "message":"WebDAV路径前缀"
+    },
+    "webdavPathPlaceholder":
+    {
+        "message":"路径前缀，例如 cookiecloud"
+    },
+    "webdavConfigMissing":
+    {
+        "message":"需要填写WebDAV地址"
+    },
+    "s3Bucket":
+    {
+        "message":"S3 Bucket"
+    },
+    "s3BucketPlaceholder":
+    {
+        "message":"Bucket名称"
+    },
+    "s3Region":
+    {
+        "message":"S3 Region"
+    },
+    "s3RegionPlaceholder":
+    {
+        "message":"区域，例如 us-east-1"
+    },
+    "s3Endpoint":
+    {
+        "message":"S3 Endpoint"
+    },
+    "s3EndpointPlaceholder":
+    {
+        "message":"S3兼容可填写，例如 https://s3.example.com"
+    },
+    "s3AccessKey":
+    {
+        "message":"S3 Access Key"
+    },
+    "s3AccessKeyPlaceholder":
+    {
+        "message":"Access Key ID"
+    },
+    "s3SecretKey":
+    {
+        "message":"S3 Secret Key"
+    },
+    "s3SecretKeyPlaceholder":
+    {
+        "message":"Secret Access Key"
+    },
+    "s3SessionToken":
+    {
+        "message":"S3 Session Token"
+    },
+    "s3SessionTokenPlaceholder":
+    {
+        "message":"可选的临时Token"
+    },
+    "s3PathPrefix":
+    {
+        "message":"S3路径前缀"
+    },
+    "s3PathPrefixPlaceholder":
+    {
+        "message":"路径前缀，例如 cookiecloud"
+    },
+    "s3ForcePathStyle":
+    {
+        "message":"强制Path Style"
+    },
+    "s3ConfigMissing":
+    {
+        "message":"S3需要填写Bucket和Key信息"
+    },
     "yes":
     {
         "message":"是"
@@ -151,5 +267,9 @@
     "save":
     {
         "message":"保存"
+    },
+    "openInTab":
+    {
+        "message":"新标签页打开"
     }
   }
