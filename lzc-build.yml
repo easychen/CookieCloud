@@ -1,0 +1,22 @@
+manifest: ./lzc-manifest.yml
+
+buildscript: |
+  rm -rf dist .pkgout
+  mkdir -p dist .pkgout
+  cp -R api dist/api
+  cp README.md dist/README.md
+  cp README_cn.md dist/README_cn.md
+
+contentdir: ./dist
+pkgout: ./.pkgout
+icon: ./extension/assets/icon.png
+
+devshell:
+  routes:
+    - /=http://127.0.0.1:8088
+  dependencies:
+    - nodejs
+    - npm
+  setupscript: |
+    cd /lzcapp/pkg/content/api
+    npm install
