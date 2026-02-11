@@ -6,13 +6,14 @@
   <title>CookieCloud · 懒猫微服后端配置</title>
   <link rel="stylesheet" href="/setup/setup.css" />
 </head>
-<body>
+  <body>
   <div class="atmo" aria-hidden="true"></div>
+  <div id="globalToast" class="global-toast" role="status" aria-live="polite"></div>
   <main class="shell">
     <header class="hero panel">
       <p class="eyebrow">LazyCat Setup Console</p>
       <h1>CookieCloud 后端安全配置向导</h1>
-      <p class="desc">面向懒猫微服部署场景：在线校验、生成预览、保存配置并自动重启，附完整生产教程与排障手册。</p>
+      <p class="desc">首次使用？只需 3 步即可完成配置。跟着下方步骤走，几分钟就能搞定。</p>
       <div class="hero-meta">
         <span class="tag" id="runtimeSource">runtime: loading...</span>
         <span class="tag" id="currentUser">user: loading...</span>
@@ -20,100 +21,209 @@
       </div>
     </header>
 
-    <section class="layout">
-      <article class="panel status-panel">
-        <h2>运行状态</h2>
-        <dl class="kv">
-          <div>
-            <dt>运行时配置文件</dt>
-            <dd id="runtimePath">-</dd>
-          </div>
-          <div>
-            <dt>数据目录</dt>
-            <dd id="dataDir">-</dd>
-          </div>
-          <div>
-            <dt>自动重启</dt>
-            <dd id="restartMode">-</dd>
-          </div>
-          <div>
-            <dt>当前 Key ID</dt>
-            <dd id="currentKeyIds">-</dd>
-          </div>
-        </dl>
-        <div class="message" id="messageBox" role="status" aria-live="polite"></div>
-      </article>
+    <!-- ===== 步骤进度条 ===== -->
+    <nav class="wizard-progress panel" aria-label="配置进度">
+      <ol class="progress-track">
+        <li class="progress-step active" data-step="1">
+          <span class="step-dot">1</span>
+          <span class="step-label">生成密钥</span>
+        </li>
+        <li class="progress-connector"></li>
+        <li class="progress-step" data-step="2">
+          <span class="step-dot">2</span>
+          <span class="step-label">高级配置</span>
+        </li>
+        <li class="progress-connector"></li>
+        <li class="progress-step" data-step="3">
+          <span class="step-dot">3</span>
+          <span class="step-label">保存 & 连接插件</span>
+        </li>
+      </ol>
+    </nav>
 
-      <article class="panel form-panel">
-        <h2>配置向导</h2>
-        <div class="grid-form">
-          <label>
+    <!-- ===== 步骤 1：生成密钥 ===== -->
+    <section class="panel wizard-step active" id="wizardStep1">
+      <div class="step-header">
+        <h2>🔑 第一步：创建你的安全密钥</h2>
+        <p class="step-desc">CookieCloud 使用 HMAC 密钥来保护数据传输。<strong>你只需要点击"随机生成"按钮</strong>，系统会自动帮你创建一个安全的密钥。</p>
+      </div>
+
+      <div class="callout callout-info">
+        <strong>💡 什么是 HMAC 密钥？</strong>
+        <p>类似于你的"钥匙"——只有持有同一把钥匙的浏览器插件才能读写你的 Cookie 数据。Key ID 是钥匙的名字，Secret 是钥匙的内容。</p>
+      </div>
+
+      <div class="keys-head">
+        <h3>密钥管理</h3>
+        <button type="button" class="ghost" id="addKeyBtn">＋ 新增密钥</button>
+      </div>
+
+      <div id="keyList" class="key-list"></div>
+
+      <div class="step-nav">
+        <div></div>
+        <button type="button" class="primary step-next" id="step1Next">下一步 →</button>
+      </div>
+    </section>
+
+    <!-- ===== 步骤 2：高级配置 ===== -->
+    <section class="panel wizard-step" id="wizardStep2">
+      <div class="step-header">
+        <h2>⚙️ 第二步：调整服务参数 <span class="badge-optional">可选</span></h2>
+        <p class="step-desc">以下参数已经预填了推荐值。<strong>如果你不确定，直接跳过即可</strong>，默认值适合绝大多数场景。</p>
+      </div>
+
+      <div class="grid-form">
+        <label>
+          <span class="label-row">
             API Root
-            <input id="apiRoot" type="text" placeholder="/api" />
-          </label>
+            <span class="help-tip" data-tip="API 的路径前缀，默认 /api。插件连接时会用到这个路径。一般不需要修改。">?</span>
+          </span>
+          <input id="apiRoot" type="text" placeholder="/api" />
+        </label>
 
-          <label>
+        <label>
+          <span class="label-row">
             HMAC TTL (秒)
-            <input id="hmacTtlSec" type="number" min="30" max="3600" value="300" />
-          </label>
+            <span class="help-tip" data-tip="签名的有效期，单位为秒。默认 300 秒（5 分钟）。超过这个时间的请求会被拒绝，防止重放攻击。">?</span>
+          </span>
+          <input id="hmacTtlSec" type="number" min="30" max="3600" value="300" />
+        </label>
 
-          <label>
+        <label>
+          <span class="label-row">
             最大请求体 (MB)
-            <input id="maxBodyMb" type="number" min="1" max="100" value="10" />
-          </label>
+            <span class="help-tip" data-tip="单次上传数据的最大体积。默认 10MB，足以覆盖绝大多数 Cookie 数据量。">?</span>
+          </span>
+          <input id="maxBodyMb" type="number" min="1" max="100" value="10" />
+        </label>
 
-          <label>
+        <label>
+          <span class="label-row">
             兼容旧密文读取
-            <select id="legacyRead">
-              <option value="true">true（迁移期）</option>
-              <option value="false">false（迁移完成）</option>
-            </select>
-          </label>
+            <span class="help-tip" data-tip="如果你是从旧版本 CookieCloud 升级来的，保持 true。全新安装用户可以选择 false。">?</span>
+          </span>
+          <select id="legacyRead">
+            <option value="true">true（迁移期）</option>
+            <option value="false">false（迁移完成）</option>
+          </select>
+        </label>
 
-          <label class="block">
+        <label class="block">
+          <span class="label-row">
             CORS Allowed Origins（每行一个）
-            <textarea id="allowedOrigins" rows="4" placeholder="chrome-extension://<ext-id>
+            <span class="help-tip" data-tip="跨域白名单。一般可以留空，系统会自动允许浏览器扩展的请求。只有当你需要从其他网页请求 API 时才需要填写。">?</span>
+          </span>
+          <textarea id="allowedOrigins" rows="3" placeholder="一般留空即可。如需添加，每行一个，例如：
+chrome-extension://<ext-id>
 https://panel.example.com"></textarea>
-          </label>
+        </label>
+      </div>
+
+      <div class="step-nav">
+        <button type="button" class="ghost step-prev" id="step2Prev">← 上一步</button>
+        <div class="step-nav-right">
+          <button type="button" class="ghost step-skip" id="step2Skip">跳过（保留当前值）</button>
+          <button type="button" class="primary step-next" id="step2Next">下一步 →</button>
         </div>
+      </div>
+    </section>
 
-        <div class="keys-head">
-          <h3>CC_HMAC_KEYS</h3>
-          <button type="button" class="ghost" id="addKeyBtn">新增 Key</button>
-        </div>
+    <!-- ===== 步骤 3：保存 & 连接 ===== -->
+    <section class="panel wizard-step" id="wizardStep3">
+      <div class="step-header">
+        <h2>🚀 第三步：保存配置 & 连接浏览器插件</h2>
+        <p class="step-desc">先保存后端配置，然后安装浏览器插件并填入连接信息。</p>
+      </div>
 
-        <div id="keyList" class="key-list"></div>
+      <!-- 3A: 运行状态 -->
+      <div class="sub-panel">
+        <h3>📊 当前运行状态</h3>
+        <dl class="kv">
+          <div><dt>运行时配置文件</dt><dd id="runtimePath">-</dd></div>
+          <div><dt>数据目录</dt><dd id="dataDir">-</dd></div>
+          <div><dt>自动重启</dt><dd id="restartMode">-</dd></div>
+          <div><dt>当前 Key ID</dt><dd id="currentKeyIds">-</dd></div>
+        </dl>
+      </div>
 
+      <!-- 3B: 操作按钮 -->
+      <div class="action-group">
+        <h3>📝 保存配置</h3>
+        <p class="step-desc">先点击"校验并预览"检查参数是否正确，确认无误后点击"保存并重启"完成后端配置。</p>
         <div class="actions">
           <button id="previewBtn" class="primary">校验并预览</button>
           <button id="applyBtn" class="danger">保存并重启</button>
           <button id="exportBtn" class="ghost">导出配置快照（脱敏）</button>
         </div>
-      </article>
+        <div class="message" id="messageBox" role="status" aria-live="polite"></div>
+      </div>
 
-      <article class="panel preview-panel">
-        <h2>配置预览（脱敏）</h2>
+      <!-- 3C: 配置预览 -->
+      <div class="sub-panel preview-area" id="previewArea">
+        <h3>🔍 配置预览（脱敏）</h3>
         <div class="preview-block">
-          <h3>后端环境变量</h3>
-          <pre id="backendEnv">点击“校验并预览”后生成。</pre>
+          <h4>后端环境变量</h4>
+          <pre id="backendEnv">点击"校验并预览"后生成。</pre>
         </div>
         <div class="preview-block">
-          <h3>插件填写模板</h3>
-          <pre id="pluginTemplate">点击“校验并预览”后生成。</pre>
-        </div>
-        <div class="preview-block">
-          <h3>验证命令</h3>
-          <pre id="verifyCommands">点击“校验并预览”后生成。</pre>
+          <h4>验证命令</h4>
+          <pre id="verifyCommands">点击"校验并预览"后生成。</pre>
         </div>
         <ul id="warnings" class="warnings"></ul>
-      </article>
+      </div>
 
-      <article class="panel tutorial-panel">
-        <h2>完整使用教程</h2>
-        <p class="tutorial-intro">部署、联调、轮换、排障与回滚均内置在下面章节，支持折叠查看。</p>
-        <div id="tutorialList" class="tutorial-list"></div>
-      </article>
+      <!-- 3D: 插件连接指南 -->
+      <div class="sub-panel plugin-card">
+        <h3>🌐 安装浏览器插件</h3>
+        <p>安装 CookieCloud 浏览器扩展，然后将下方信息填入插件设置页：</p>
+        <div class="plugin-links">
+          <a class="plugin-link" href="https://chrome.google.com/webstore/detail/cookiecloud/ffjiejobkoibkjlhjnlgmcnnigeelbdl" target="_blank" rel="noreferrer">
+            <span class="plugin-icon">🟢</span> Chrome 应用商店
+          </a>
+          <a class="plugin-link" href="https://microsoftedge.microsoft.com/addons/detail/cookiecloud/bffenpfpjikaeocaihdonmgnjjdpjkeo" target="_blank" rel="noreferrer">
+            <span class="plugin-icon">🔵</span> Edge 应用商店
+          </a>
+        </div>
+
+        <h4 class="mt-12">📋 插件填写模板</h4>
+        <p class="step-desc">安装插件后，打开插件设置页，按下方信息逐项填入：</p>
+        <div class="plugin-template">
+          <div class="template-row">
+            <span class="template-label">Server Address</span>
+            <span class="template-value" id="pluginServerAddress">保存配置后自动显示</span>
+            <button type="button" class="copy-btn" data-copy-target="pluginServerAddress" title="复制">📋</button>
+          </div>
+          <div class="template-row">
+            <span class="template-label">Auth Key ID</span>
+            <span class="template-value" id="pluginKeyId">保存配置后自动显示</span>
+            <button type="button" class="copy-btn" data-copy-target="pluginKeyId" title="复制">📋</button>
+          </div>
+          <div class="template-row">
+            <span class="template-label">Auth Secret</span>
+            <span class="template-value" id="pluginSecret">⚠️ 填入你在第一步设置的 Secret（本页不显示明文）</span>
+          </div>
+          <div class="template-row">
+            <span class="template-label">Encryption Algorithm</span>
+            <span class="template-value">AES-256-GCM (PBKDF2)</span>
+          </div>
+        </div>
+        <!-- hidden pre for compatibility with setup.js pluginTemplate reference -->
+        <pre id="pluginTemplate" class="sr-only"></pre>
+      </div>
+
+      <div class="step-nav">
+        <button type="button" class="ghost step-prev" id="step3Prev">← 上一步</button>
+        <div></div>
+      </div>
     </section>
+
+    <!-- ===== 底部完整教程（保留） ===== -->
+    <article class="panel tutorial-panel">
+      <h2>📚 完整使用教程</h2>
+      <p class="tutorial-intro">部署、联调、轮换、排障与回滚均内置在下面章节，支持折叠查看。</p>
+      <div id="tutorialList" class="tutorial-list"></div>
+    </article>
   </main>
 
   <template id="keyTemplate">
@@ -124,7 +234,10 @@ https://panel.example.com"></textarea>
       </label>
       <label>
         Secret
-        <input class="key-secret" type="password" placeholder="至少 32 位，包含字母与数字" />
+        <div class="secret-input-group">
+          <input class="key-secret" type="password" placeholder="点击右侧按钮自动生成" />
+          <button type="button" class="btn-generate" title="随机生成 64 位安全密钥">🎲 生成</button>
+        </div>
       </label>
       <button type="button" class="remove-key">移除</button>
     </div>

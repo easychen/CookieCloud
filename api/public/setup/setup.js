@@ -1,8 +1,10 @@
 (() => {
+  /* ===== State ===== */
   const state = {
     bootstrap: null,
     tutorial: [],
     lastPreview: null,
+    currentStep: 1,
     form: {
       api_root: '/api',
       hmac_ttl_sec: 300,
@@ -13,33 +15,54 @@
     }
   };
 
+  /* ===== DOM Refs ===== */
   const refs = {
+    globalToast: document.getElementById('globalToast'),
+    // Hero meta
     runtimeSource: document.getElementById('runtimeSource'),
     currentUser: document.getElementById('currentUser'),
     appDomain: document.getElementById('appDomain'),
+    // Runtime status (step 3)
     runtimePath: document.getElementById('runtimePath'),
     dataDir: document.getElementById('dataDir'),
     restartMode: document.getElementById('restartMode'),
     currentKeyIds: document.getElementById('currentKeyIds'),
     messageBox: document.getElementById('messageBox'),
+    // Form fields (step 2)
     apiRoot: document.getElementById('apiRoot'),
     hmacTtlSec: document.getElementById('hmacTtlSec'),
     maxBodyMb: document.getElementById('maxBodyMb'),
     legacyRead: document.getElementById('legacyRead'),
     allowedOrigins: document.getElementById('allowedOrigins'),
+    // Keys (step 1)
     addKeyBtn: document.getElementById('addKeyBtn'),
     keyList: document.getElementById('keyList'),
+    // Action buttons (step 3)
     previewBtn: document.getElementById('previewBtn'),
     applyBtn: document.getElementById('applyBtn'),
     exportBtn: document.getElementById('exportBtn'),
+    // Preview outputs (step 3)
     backendEnv: document.getElementById('backendEnv'),
     pluginTemplate: document.getElementById('pluginTemplate'),
     verifyCommands: document.getElementById('verifyCommands'),
     warnings: document.getElementById('warnings'),
+    // Plugin template fields (step 3)
+    pluginServerAddress: document.getElementById('pluginServerAddress'),
+    pluginKeyId: document.getElementById('pluginKeyId'),
+    pluginSecret: document.getElementById('pluginSecret'),
+    // Tutorial
     tutorialList: document.getElementById('tutorialList'),
-    keyTemplate: document.getElementById('keyTemplate')
+    // Key template
+    keyTemplate: document.getElementById('keyTemplate'),
+    // Wizard steps
+    wizardStep1: document.getElementById('wizardStep1'),
+    wizardStep2: document.getElementById('wizardStep2'),
+    wizardStep3: document.getElementById('wizardStep3')
   };
 
+  let toastTimerId = null;
+
+  /* ===== Init ===== */
   init().catch((error) => {
     setMessage('error', `初始化失败：${error.message}`);
   });
@@ -59,10 +82,12 @@
     renderRuntimeStatus();
     renderForm();
     renderTutorial();
+    updatePluginDefaults();
 
-    setMessage('info', '配置页已加载。建议先点“校验并预览”确认参数，再执行“保存并重启”。');
+    setMessage('info', '🎉 配置页已加载！请从「第一步：创建安全密钥」开始。');
   }
 
+  /* ===== Event Binding ===== */
   function bindEvents() {
     refs.addKeyBtn.addEventListener('click', () => {
       state.form.hmac_keys.push({ key_id: '', secret: '' });
@@ -72,8 +97,122 @@
     refs.previewBtn.addEventListener('click', onPreview);
     refs.applyBtn.addEventListener('click', onApply);
     refs.exportBtn.addEventListener('click', onExportSnapshot);
+
+    // Step navigation
+    const step1Next = document.getElementById('step1Next');
+    const step2Prev = document.getElementById('step2Prev');
+    const step2Skip = document.getElementById('step2Skip');
+    const step2Next = document.getElementById('step2Next');
+    const step3Prev = document.getElementById('step3Prev');
+
+    if (step1Next) step1Next.addEventListener('click', () => {
+      syncFormFromDOM();
+      // Validate step 1: at least one key with secret
+      const hasValidKey = state.form.hmac_keys.some(k => k.key_id && k.secret && k.secret.length >= 32);
+      if (!hasValidKey) {
+        setMessage('error', '❌ 请至少创建一组密钥。Secret 需至少 32 位，且包含字母和数字。点击"🎲 生成"按钮可自动创建。');
+        return;
+      }
+      goToStep(2);
+    });
+
+    if (step2Prev) step2Prev.addEventListener('click', () => { syncFormFromDOM(); goToStep(1); });
+    if (step2Skip) step2Skip.addEventListener('click', () => { goToStep(3); });
+    if (step2Next) step2Next.addEventListener('click', () => { syncFormFromDOM(); goToStep(3); });
+    if (step3Prev) step3Prev.addEventListener('click', () => { syncFormFromDOM(); goToStep(2); });
+
+    // Copy buttons
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-copy-target');
+        const targetEl = document.getElementById(targetId);
+        if (targetEl) {
+          const text = String(targetEl.textContent || '').trim();
+          if (!text || text === '-' || text.includes('保存配置后自动显示')) {
+            setMessage('error', '当前字段还没有可复制的有效值，请先执行“校验并预览”或“保存并重启”。');
+            return;
+          }
+          copyToClipboard(text);
+          btn.textContent = '✅';
+          btn.classList.add('copied');
+          setTimeout(() => { btn.textContent = '📋'; btn.classList.remove('copied'); }, 2000);
+        }
+      });
+    });
   }
 
+  /* ===== Step Navigation ===== */
+  function goToStep(n) {
+    state.currentStep = n;
+
+    // Show/hide panels
+    [refs.wizardStep1, refs.wizardStep2, refs.wizardStep3].forEach((el, i) => {
+      if (el) {
+        el.classList.toggle('active', i + 1 === n);
+      }
+    });
+
+    // Update progress bar
+    document.querySelectorAll('.progress-step').forEach(el => {
+      const stepNum = parseInt(el.getAttribute('data-step'), 10);
+      el.classList.remove('active', 'done');
+      if (stepNum === n) el.classList.add('active');
+      else if (stepNum < n) el.classList.add('done');
+    });
+
+    document.querySelectorAll('.progress-connector').forEach((el, i) => {
+      el.classList.toggle('done', i + 1 < n);
+    });
+
+    // Clear messages when navigating
+    refs.messageBox.textContent = '';
+    refs.messageBox.className = 'message';
+
+    // When entering step 3, refresh plugin defaults
+    if (n === 3) {
+      updatePluginDefaults();
+    }
+
+    // Scroll to top of step
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ===== Secret Generation ===== */
+  function generateRandomSecret(length = 64) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars[array[i] % chars.length];
+    }
+    // Ensure at least one letter and one digit
+    if (!/[A-Za-z]/.test(result)) result = 'A' + result.slice(1);
+    if (!/[0-9]/.test(result)) result = result.slice(0, -1) + '7';
+    return result;
+  }
+
+  /* ===== Clipboard ===== */
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+  }
+
+  /* ===== Hydrate Form ===== */
   function hydrateForm(config) {
     state.form.api_root = config.api_root || '/api';
     state.form.hmac_ttl_sec = Number.parseInt(String(config.hmac_ttl_sec || 300), 10);
@@ -91,6 +230,16 @@
     }
   }
 
+  /* ===== Sync Form From DOM ===== */
+  function syncFormFromDOM() {
+    if (refs.apiRoot) state.form.api_root = refs.apiRoot.value.trim();
+    if (refs.hmacTtlSec) state.form.hmac_ttl_sec = Number.parseInt(refs.hmacTtlSec.value, 10) || 300;
+    if (refs.maxBodyMb) state.form.max_body_mb = Number.parseInt(refs.maxBodyMb.value, 10) || 10;
+    if (refs.legacyRead) state.form.enable_legacy_read = refs.legacyRead.value === 'true';
+    if (refs.allowedOrigins) state.form.allowed_origins = refs.allowedOrigins.value;
+  }
+
+  /* ===== Render ===== */
   function renderRuntimeStatus() {
     const bootstrap = state.bootstrap || {};
     const config = bootstrap.config || {};
@@ -126,6 +275,7 @@
       const idInput = node.querySelector('.key-id');
       const secretInput = node.querySelector('.key-secret');
       const removeBtn = node.querySelector('.remove-key');
+      const generateBtn = node.querySelector('.btn-generate');
 
       idInput.value = item.key_id;
       secretInput.value = item.secret;
@@ -136,6 +286,30 @@
 
       secretInput.addEventListener('input', (event) => {
         state.form.hmac_keys[index].secret = event.target.value;
+      });
+
+      // Generate random secret button
+      if (generateBtn) {
+        generateBtn.addEventListener('click', () => {
+          const secret = generateRandomSecret(64);
+          secretInput.value = secret;
+          secretInput.type = 'text';
+          state.form.hmac_keys[index].secret = secret;
+          generateBtn.textContent = '✅ 已生成';
+          setTimeout(() => { generateBtn.textContent = '🎲 生成'; }, 2000);
+          setTimeout(() => {
+            secretInput.type = 'password';
+          }, 2000);
+
+          setMessage('success', `✅ 已为 Key "${item.key_id || 'k1'}" 自动生成 64 位安全密钥。请务必记下此密钥，后续需填入浏览器插件。`);
+        });
+      }
+
+      secretInput.addEventListener('click', () => {
+        const text = String(secretInput.value || '').trim();
+        if (!text) return;
+        copyToClipboard(text);
+        setMessage('info', `已复制 Key "${idInput.value || 'k1'}" 的 Secret 到剪贴板。`);
       });
 
       removeBtn.addEventListener('click', () => {
@@ -151,14 +325,30 @@
     });
   }
 
-  function collectPayload() {
-    const api_root = refs.apiRoot.value.trim();
-    const hmac_ttl_sec = Number.parseInt(refs.hmacTtlSec.value, 10);
-    const max_body_mb = Number.parseInt(refs.maxBodyMb.value, 10);
-    const enable_legacy_read = refs.legacyRead.value === 'true';
+  function updatePluginDefaults() {
+    const bootstrap = state.bootstrap || {};
+    const pluginDefaults = bootstrap.plugin_defaults || {};
 
-    const allowed_origins = refs.allowedOrigins.value
-      .split(/\n|,/) 
+    if (refs.pluginServerAddress) {
+      refs.pluginServerAddress.textContent = pluginDefaults.server_address || '保存配置后自动显示';
+    }
+    if (refs.pluginKeyId) {
+      const ids = state.form.hmac_keys.filter(k => k.key_id).map(k => k.key_id);
+      refs.pluginKeyId.textContent = ids[0] || pluginDefaults.auth_key_id || '-';
+    }
+  }
+
+  /* ===== API Actions: collectPayload, onPreview, onApply, onExport ===== */
+  function collectPayload() {
+    syncFormFromDOM();
+
+    const api_root = state.form.api_root;
+    const hmac_ttl_sec = state.form.hmac_ttl_sec;
+    const max_body_mb = state.form.max_body_mb;
+    const enable_legacy_read = state.form.enable_legacy_read;
+
+    const allowed_origins = (state.form.allowed_origins || '')
+      .split(/\n|,/)
       .map((item) => item.trim())
       .filter(Boolean);
 
@@ -195,6 +385,21 @@
       refs.pluginTemplate.textContent = response.blocks?.plugin_template || '';
       refs.verifyCommands.textContent = response.blocks?.verify_commands || '';
 
+      // Update plugin card values from preview
+      if (response.blocks?.plugin_template) {
+        const lines = response.blocks.plugin_template.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('Server Address:')) {
+            const val = line.replace('Server Address:', '').trim();
+            if (refs.pluginServerAddress) refs.pluginServerAddress.textContent = val;
+          }
+          if (line.startsWith('Auth Key ID:')) {
+            const val = line.replace('Auth Key ID:', '').trim();
+            if (refs.pluginKeyId) refs.pluginKeyId.textContent = val;
+          }
+        }
+      }
+
       refs.warnings.innerHTML = '';
       (response.warnings || []).forEach((item) => {
         const li = document.createElement('li');
@@ -202,7 +407,7 @@
         refs.warnings.appendChild(li);
       });
 
-      setMessage('success', '预览成功：内容已脱敏，未返回明文 secret。');
+      setMessage('success', '✅ 预览成功：内容已脱敏，未返回明文 secret。确认无误后可点击"保存并重启"。');
     } catch (error) {
       setMessage('error', extractErrorMessage(error));
     } finally {
@@ -215,6 +420,7 @@
     if (!accepted) return;
 
     toggleBusy(true);
+    let keepApplyDisabled = false;
 
     try {
       const payload = collectPayload();
@@ -224,9 +430,10 @@
         body: JSON.stringify(payload)
       });
 
-      setMessage('success', `${response.message} 配置文件：${response.runtime_config_file}`);
+      setMessage('success', `🎉 ${response.message} 配置文件：${response.runtime_config_file}`);
 
       if (response.restart_scheduled) {
+        keepApplyDisabled = true;
         refs.applyBtn.disabled = true;
         window.setTimeout(() => {
           refs.applyBtn.disabled = false;
@@ -236,6 +443,9 @@
       setMessage('error', extractErrorMessage(error));
     } finally {
       toggleBusy(false);
+      if (keepApplyDisabled) {
+        refs.applyBtn.disabled = true;
+      }
     }
   }
 
@@ -257,9 +467,10 @@
     link.remove();
     URL.revokeObjectURL(url);
 
-    setMessage('info', '已导出脱敏快照。请与本地密钥记录分开存放。');
+    setMessage('info', '📦 已导出脱敏快照。请与本地密钥记录分开存放。');
   }
 
+  /* ===== Tutorial ===== */
   function renderTutorial() {
     refs.tutorialList.innerHTML = '';
 
@@ -296,6 +507,7 @@
     });
   }
 
+  /* ===== Utilities ===== */
   function toggleBusy(isBusy) {
     refs.previewBtn.disabled = isBusy;
     refs.applyBtn.disabled = isBusy;
@@ -303,9 +515,30 @@
   }
 
   function setMessage(type, text) {
-    refs.messageBox.classList.remove('success', 'error', 'info');
-    refs.messageBox.classList.add(type);
-    refs.messageBox.textContent = text;
+    showGlobalToast(type, text);
+
+    if (refs.messageBox) {
+      refs.messageBox.classList.remove('success', 'error', 'info');
+      refs.messageBox.classList.add(type);
+      refs.messageBox.textContent = text;
+    }
+  }
+
+  function showGlobalToast(type, text) {
+    if (!refs.globalToast) return;
+
+    refs.globalToast.classList.remove('success', 'error', 'info');
+    refs.globalToast.classList.add(type, 'show');
+    refs.globalToast.textContent = text;
+
+    if (toastTimerId) {
+      clearTimeout(toastTimerId);
+    }
+
+    toastTimerId = setTimeout(() => {
+      refs.globalToast.classList.remove('show');
+      toastTimerId = null;
+    }, 3200);
   }
 
   async function requestJSON(url, options = {}) {
