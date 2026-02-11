@@ -15,6 +15,8 @@ const CopyIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) =
 interface ConfigData {
   endpoint: string;
   password: string;
+  auth_key_id: string;
+  auth_secret: string;
   interval: number;
   domains: string;
   uuid: string;
@@ -31,6 +33,8 @@ const CookieCloudPopup: React.FC = () => {
   const [data, setData] = useState<ConfigData>({
     endpoint: "https://ccc.ft07.com",
     password: "",
+    auth_key_id: "default",
+    auth_secret: "",
     interval: 10,
     domains: "",
     uuid: String(short_uid.generate()),
@@ -40,7 +44,7 @@ const CookieCloudPopup: React.FC = () => {
     blacklist: "google.com",
     headers: "",
     expire_minutes: 60 * 24 * 365,
-    crypto_type: "legacy"
+    crypto_type: "aes-256-gcm-v1"
   });
 
   useEffect(() => {
@@ -67,7 +71,7 @@ const CookieCloudPopup: React.FC = () => {
   const test = async (action: string = browser.i18n.getMessage('test') || '测试') => {
     console.log("request,begin");
     
-    if (!data.endpoint || !data.password || !data.uuid || !data.type) {
+    if (!data.endpoint || !data.password || !data.uuid || !data.type || !data.auth_key_id || !data.auth_secret) {
       alert(browser.i18n.getMessage("fullMessagePlease") || "请填写完整的信息");
       return;
     }
@@ -97,7 +101,7 @@ const CookieCloudPopup: React.FC = () => {
   };
 
   const save = async () => {
-    if (!data.endpoint || !data.password || !data.uuid || !data.type) {
+    if (!data.endpoint || !data.password || !data.uuid || !data.type || !data.auth_key_id || !data.auth_secret) {
       alert(browser.i18n.getMessage("fullMessagePlease") || "请填写完整的信息");
       return;
     }
@@ -272,6 +276,34 @@ const CookieCloudPopup: React.FC = () => {
                 </div>
               </div>
 
+              {/* Auth Key ID */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  {browser.i18n.getMessage('authKeyId') || 'Auth Key ID'}
+                </label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder={browser.i18n.getMessage('authKeyIdPlaceholder') || '用于服务端定位签名密钥'}
+                  value={data.auth_key_id}
+                  onChange={(e) => handleInputChange('auth_key_id', e.target.value)}
+                />
+              </div>
+
+              {/* Auth Secret */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  {browser.i18n.getMessage('authSecret') || 'Auth Secret'}
+                </label>
+                <input
+                  type="password"
+                  className="form-input"
+                  placeholder={browser.i18n.getMessage('authSecretPlaceholder') || '用于生成请求签名，需与服务端一致'}
+                  value={data.auth_secret}
+                  onChange={(e) => handleInputChange('auth_secret', e.target.value)}
+                />
+              </div>
+
               {/* Crypto Algorithm */}
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -282,11 +314,14 @@ const CookieCloudPopup: React.FC = () => {
                   value={data.crypto_type}
                   onChange={(e) => handleInputChange('crypto_type', e.target.value)}
                 >
+                  <option value="aes-256-gcm-v1">{browser.i18n.getMessage('cryptoAesGcm') || 'AES-256-GCM (PBKDF2)'}</option>
                   <option value="legacy">{browser.i18n.getMessage('cryptoLegacy') || 'CryptoJS(动态IV)'}</option>
                   <option value="aes-128-cbc-fixed">{browser.i18n.getMessage('cryptoAesCbcFixed') || 'AES-128-CBC(固定IV)'}</option>
                 </select>
                 <div className="text-xs text-gray-500 mt-1">
-                  {data.crypto_type === 'legacy' 
+                  {data.crypto_type === 'aes-256-gcm-v1'
+                    ? (browser.i18n.getMessage('cryptoAesGcmDesc') || '推荐：AES-256-GCM + PBKDF2，包含认证标签，安全性更高')
+                    : data.crypto_type === 'legacy'
                     ? (browser.i18n.getMessage('cryptoLegacyDesc') || '使用CryptoJS加密算法，会动态生成IV')
                     : (browser.i18n.getMessage('cryptoAesCbcFixedDesc') || '使用标准 AES-128-CBC 算法，IV固定为 0x0')
                   }
