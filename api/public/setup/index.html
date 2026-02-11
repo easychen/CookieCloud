@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CookieCloud · 懒猫微服后端配置</title>
+  <link rel="stylesheet" href="/setup/setup.css" />
+</head>
+<body>
+  <div class="atmo" aria-hidden="true"></div>
+  <main class="shell">
+    <header class="hero panel">
+      <p class="eyebrow">LazyCat Setup Console</p>
+      <h1>CookieCloud 后端安全配置向导</h1>
+      <p class="desc">面向懒猫微服部署场景：在线校验、生成预览、保存配置并自动重启，附完整生产教程与排障手册。</p>
+      <div class="hero-meta">
+        <span class="tag" id="runtimeSource">runtime: loading...</span>
+        <span class="tag" id="currentUser">user: loading...</span>
+        <span class="tag" id="appDomain">domain: loading...</span>
+      </div>
+    </header>
+
+    <section class="layout">
+      <article class="panel status-panel">
+        <h2>运行状态</h2>
+        <dl class="kv">
+          <div>
+            <dt>运行时配置文件</dt>
+            <dd id="runtimePath">-</dd>
+          </div>
+          <div>
+            <dt>数据目录</dt>
+            <dd id="dataDir">-</dd>
+          </div>
+          <div>
+            <dt>自动重启</dt>
+            <dd id="restartMode">-</dd>
+          </div>
+          <div>
+            <dt>当前 Key ID</dt>
+            <dd id="currentKeyIds">-</dd>
+          </div>
+        </dl>
+        <div class="message" id="messageBox" role="status" aria-live="polite"></div>
+      </article>
+
+      <article class="panel form-panel">
+        <h2>配置向导</h2>
+        <div class="grid-form">
+          <label>
+            API Root
+            <input id="apiRoot" type="text" placeholder="/api" />
+          </label>
+
+          <label>
+            HMAC TTL (秒)
+            <input id="hmacTtlSec" type="number" min="30" max="3600" value="300" />
+          </label>
+
+          <label>
+            最大请求体 (MB)
+            <input id="maxBodyMb" type="number" min="1" max="100" value="10" />
+          </label>
+
+          <label>
+            兼容旧密文读取
+            <select id="legacyRead">
+              <option value="true">true（迁移期）</option>
+              <option value="false">false（迁移完成）</option>
+            </select>
+          </label>
+
+          <label class="block">
+            CORS Allowed Origins（每行一个）
+            <textarea id="allowedOrigins" rows="4" placeholder="chrome-extension://<ext-id>
+https://panel.example.com"></textarea>
+          </label>
+        </div>
+
+        <div class="keys-head">
+          <h3>CC_HMAC_KEYS</h3>
+          <button type="button" class="ghost" id="addKeyBtn">新增 Key</button>
+        </div>
+
+        <div id="keyList" class="key-list"></div>
+
+        <div class="actions">
+          <button id="previewBtn" class="primary">校验并预览</button>
+          <button id="applyBtn" class="danger">保存并重启</button>
+          <button id="exportBtn" class="ghost">导出配置快照（脱敏）</button>
+        </div>
+      </article>
+
+      <article class="panel preview-panel">
+        <h2>配置预览（脱敏）</h2>
+        <div class="preview-block">
+          <h3>后端环境变量</h3>
+          <pre id="backendEnv">点击“校验并预览”后生成。</pre>
+        </div>
+        <div class="preview-block">
+          <h3>插件填写模板</h3>
+          <pre id="pluginTemplate">点击“校验并预览”后生成。</pre>
+        </div>
+        <div class="preview-block">
+          <h3>验证命令</h3>
+          <pre id="verifyCommands">点击“校验并预览”后生成。</pre>
+        </div>
+        <ul id="warnings" class="warnings"></ul>
+      </article>
+
+      <article class="panel tutorial-panel">
+        <h2>完整使用教程</h2>
+        <p class="tutorial-intro">部署、联调、轮换、排障与回滚均内置在下面章节，支持折叠查看。</p>
+        <div id="tutorialList" class="tutorial-list"></div>
+      </article>
+    </section>
+  </main>
+
+  <template id="keyTemplate">
+    <div class="key-row">
+      <label>
+        Key ID
+        <input class="key-id" type="text" placeholder="k1" maxlength="64" />
+      </label>
+      <label>
+        Secret
+        <input class="key-secret" type="password" placeholder="至少 32 位，包含字母与数字" />
+      </label>
+      <button type="button" class="remove-key">移除</button>
+    </div>
+  </template>
+
+  <script src="/setup/setup.js"></script>
+</body>
+</html>
