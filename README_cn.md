@@ -112,6 +112,43 @@ cd api && yarn install && node app.js
 ```
 默认端口 8088 ，同样也支持 API_ROOT 环境变量
 
+### 公网暴露安全说明（必读）
+
+只要你的 CookieCloud 地址可以被互联网直接访问（包括平台分配的公网域名），就应视为公网暴露。
+
+当前版本对 `/update` 和 `/get/:uuid` 默认强制 HMAC 签名鉴权。
+
+建议至少配置以下环境变量：
+
+```bash
+# 格式：key_id:secret[,key_id2:secret2]
+CC_HMAC_KEYS=default:替换为高强度随机密钥
+
+# 签名时间窗（秒），默认 300
+CC_HMAC_TTL_SEC=300
+
+# 请求体大小限制（MB），默认 10
+CC_MAX_BODY_MB=10
+
+# CORS 白名单，逗号分隔；留空时仅允许无 Origin 请求
+CC_ALLOWED_ORIGINS=
+
+# 迁移期保持 true，迁移完成后建议改为 false
+CC_ENABLE_LEGACY_READ=true
+```
+
+Docker 配置示例：
+
+```bash
+docker run \
+  -p=8088:8088 \
+  -e CC_HMAC_KEYS='default:替换为高强度随机密钥' \
+  -e CC_HMAC_TTL_SEC=300 \
+  -e CC_MAX_BODY_MB=10 \
+  -e CC_ENABLE_LEGACY_READ=true \
+  easychen/cookiecloud:latest
+```
+
 ## 调试和日志查看
 
 进入浏览器插件列表，点击 service worker，会弹出一个面板，可查看运行日志
@@ -124,16 +161,40 @@ cd api && yarn install && node app.js
 
 - method: POST
 - url: /update
+- headers（必填）
+  - `X-CC-Key-Id`
+  - `X-CC-Timestamp`
+  - `X-CC-Nonce`
+  - `X-CC-Signature`
 - 参数
   - uuid
   - encrypted: 本地加密后的字符串
+  - crypto_type: `aes-256-gcm-v1` / `legacy` / `aes-128-cbc-fixed`
 
 下载：
 
 - method: POST/GET
 - url: /get/:uuid
+- headers（必填）
+  - `X-CC-Key-Id`
+  - `X-CC-Timestamp`
+  - `X-CC-Nonce`
+  - `X-CC-Signature`
 - 参数：
    - password:可选，不提供返回加密后的字符串，提供则发送尝试解密后的内容；
+
+签名串格式：
+
+```text
+METHOD
+PATH
+UUID
+TIMESTAMP
+NONCE
+SHA256(BODY)
+```
+
+算法：`HMAC-SHA256`
 
 
 ## Cookie加解密算法
@@ -142,8 +203,15 @@ cd api && yarn install && node app.js
 
 const data = JSON.stringify(cookies);
 
-1. md5(uuid+password) 取前16位作为key
-2. AES.encrypt(data, the_key)
+默认推荐：
+
+1. 对 `uuid-password` 使用 PBKDF2-SHA256（随机 salt）
+2. 使用 AES-256-GCM 加密并附带认证标签（`aes-256-gcm-v1`）
+
+兼容旧格式：
+
+1. `legacy`（CryptoJS 动态 IV）
+2. `aes-128-cbc-fixed`（固定 IV，仅用于兼容）
 
 ### 解密
 
@@ -482,5 +550,4 @@ const main = async (env: Record<string, string>) => {
     console.log('decrypted:', new TextDecoder().decode(d))
 }
 ```
-
 

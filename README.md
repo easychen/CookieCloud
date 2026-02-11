@@ -116,6 +116,44 @@ cd api && yarn install && node app.js
 ```
 Default port 8088, also supports the API_ROOT environment variable
 
+### Public Exposure Security (must-read)
+
+If your CookieCloud endpoint is accessible from the public internet (including public domain names provided by platform vendors), treat it as an internet-exposed service.
+
+This version enforces HMAC request signatures by default on `/update` and `/get/:uuid`.
+
+Required environment variables:
+
+```bash
+# Format: key_id:secret[,key_id2:secret2]
+CC_HMAC_KEYS=default:replace-with-a-long-random-secret
+
+# Signature validity window in seconds (default 300)
+CC_HMAC_TTL_SEC=300
+
+# Request body size limit in MB (default 10)
+CC_MAX_BODY_MB=10
+
+# CORS allowlist (comma-separated), e.g. https://panel.example.com
+# Empty means only non-browser-origin requests are allowed.
+CC_ALLOWED_ORIGINS=
+
+# Keep true during migration, set false after old data is migrated
+CC_ENABLE_LEGACY_READ=true
+```
+
+Docker example:
+
+```bash
+docker run \
+  -p=8088:8088 \
+  -e CC_HMAC_KEYS='default:replace-with-a-long-random-secret' \
+  -e CC_HMAC_TTL_SEC=300 \
+  -e CC_MAX_BODY_MB=10 \
+  -e CC_ENABLE_LEGACY_READ=true \
+  easychen/cookiecloud:latest
+```
+
 ## Debugging and Log Viewing
 
 Enter the browser plugin list, click on service worker, a panel will pop up where you can view the operation log
@@ -128,16 +166,40 @@ Upload:
 
 - method: POST
 - url: /update
+- headers (required)
+  - `X-CC-Key-Id`
+  - `X-CC-Timestamp`
+  - `X-CC-Nonce`
+  - `X-CC-Signature`
 - parameters
   - uuid
   - encrypted: the string encrypted locally
+  - crypto_type: `aes-256-gcm-v1` / `legacy` / `aes-128-cbc-fixed`
 
 Download:
 
 - method: POST/GET
 - url: /get/:uuid
+- headers (required)
+  - `X-CC-Key-Id`
+  - `X-CC-Timestamp`
+  - `X-CC-Nonce`
+  - `X-CC-Signature`
 - parameters:
    - password: optional, if not provided returns the encrypted string, if provided attempts to decrypt and send the content;
+
+Signature payload format:
+
+```text
+METHOD
+PATH
+UUID
+TIMESTAMP
+NONCE
+SHA256(BODY)
+```
+
+Algorithm: `HMAC-SHA256`
 
 
 ## Cookie Encryption and Decryption Algorithm
@@ -146,8 +208,15 @@ Download:
 
 const data = JSON.stringify(cookies);
 
-1. md5(uuid+password) take the first 16 characters as the key
-2. AES.encrypt(data, the_key)
+Default (recommended):
+
+1. PBKDF2-SHA256 on `uuid-password` with random salt
+2. AES-256-GCM encrypt + auth tag (`aes-256-gcm-v1`)
+
+Legacy compatibility:
+
+1. `legacy` (CryptoJS dynamic IV)
+2. `aes-128-cbc-fixed` (fixed IV, only for compatibility)
 
 ### Decryption
 
@@ -488,5 +557,4 @@ const main = async (env: Record<string, string>) => {
 ```
 
 Translated by GPT4
-
 
