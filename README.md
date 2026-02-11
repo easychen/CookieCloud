@@ -154,6 +154,59 @@ docker run \
   easychen/cookiecloud:latest
 ```
 
+### Built-in LazyCat Setup Page (`/setup`)
+
+This repository now includes a built-in backend setup page for LazyCat deployments.
+
+Highlights:
+
+1. Setup URL is `/setup` and enabled by default (`CC_SETUP_UI_ENABLE=true`).
+2. Server performs a second-layer auth check on `X-HC-User-ID`; missing header returns `401`.
+3. Supports `Preview`, `Apply + Restart`, and `Export redacted snapshot`.
+4. API responses are redacted and never return plaintext secrets.
+
+Minimal flow:
+
+1. Open `https://<your-domain>/setup`.
+2. Fill `API Root / HMAC Keys / TTL / Max Body / Allowed Origins`.
+3. Click **Preview** and verify generated plugin template and validation commands.
+4. Click **Save and Restart**, then run integration checks after restart.
+
+Key runtime variables:
+
+```bash
+CC_SETUP_UI_ENABLE=true
+CC_SETUP_DISABLE_RESTART=false
+CC_RUNTIME_CONFIG_FILE=/lzcapp/var/cookiecloud/runtime-config.json
+CC_DATA_DIR=/lzcapp/var/cookiecloud/data
+```
+
+Notes:
+
+1. Runtime config is persisted to `CC_RUNTIME_CONFIG_FILE` in JSON format.
+2. After apply, the service exits gracefully with a short delay (~800ms) for platform-managed restart.
+3. Set `CC_SETUP_DISABLE_RESTART=true` if you prefer manual restart.
+
+### LazyCat Packaging Files
+
+The repository root contains:
+
+1. `lzc-manifest.yml`
+2. `lzc-build.yml`
+
+You can build/install directly:
+
+```bash
+lzc-cli project build
+lzc-cli app install ./.pkgout/*.lpk --apk n
+```
+
+Default manifest strategy:
+
+1. Route ` /=http://app:8088`
+2. Public paths only for extension APIs: `/api/update`, `/api/get/`, `/api/health`
+3. `/setup` is not in `public_path`, so access is controlled by LazyCat login
+
 ## Debugging and Log Viewing
 
 Enter the browser plugin list, click on service worker, a panel will pop up where you can view the operation log
@@ -557,4 +610,3 @@ const main = async (env: Record<string, string>) => {
 ```
 
 Translated by GPT4
-

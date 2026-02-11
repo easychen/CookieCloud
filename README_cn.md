@@ -149,6 +149,59 @@ docker run \
   easychen/cookiecloud:latest
 ```
 
+### 懒猫微服内置配置页（/setup）
+
+本仓库新增了后端内置配置页面，适合懒猫公网部署场景。
+
+特点：
+
+1. 页面地址固定为 `/setup`，默认开启（`CC_SETUP_UI_ENABLE=true`）。
+2. 服务端会校验 `X-HC-User-ID` 请求头，未登录请求返回 `401`。
+3. 支持“校验并预览”、“保存并重启”、“导出脱敏快照”。
+4. 预览与 API 返回内容均脱敏，不回传明文 `Auth Secret`。
+
+最小流程：
+
+1. 访问 `https://你的域名/setup`。
+2. 填写 `API Root / HMAC Keys / TTL / Max Body / Allowed Origins`。
+3. 点击“校验并预览”，确认插件模板和验证命令。
+4. 点击“保存并重启”，等待服务重启后再执行联调。
+
+关键运行时变量：
+
+```bash
+CC_SETUP_UI_ENABLE=true
+CC_SETUP_DISABLE_RESTART=false
+CC_RUNTIME_CONFIG_FILE=/lzcapp/var/cookiecloud/runtime-config.json
+CC_DATA_DIR=/lzcapp/var/cookiecloud/data
+```
+
+说明：
+
+1. 运行时配置写入 `CC_RUNTIME_CONFIG_FILE`，格式为 JSON。
+2. 应用配置后，服务默认会延迟约 800ms 触发优雅退出，由平台拉起新进程。
+3. 如需人工重启，可将 `CC_SETUP_DISABLE_RESTART=true`。
+
+### 懒猫打包文件
+
+仓库根目录包含：
+
+1. `lzc-manifest.yml`
+2. `lzc-build.yml`
+
+可直接执行：
+
+```bash
+lzc-cli project build
+lzc-cli app install ./.pkgout/*.lpk --apk n
+```
+
+Manifest 默认策略：
+
+1. 对外路由 `/=http://app:8088`
+2. 仅公开插件必要路径：`/api/update`、`/api/get/`、`/api/health`
+3. `/setup` 不在 `public_path`，由懒猫登录态控制访问
+
 ## 调试和日志查看
 
 进入浏览器插件列表，点击 service worker，会弹出一个面板，可查看运行日志
@@ -550,4 +603,3 @@ const main = async (env: Record<string, string>) => {
     console.log('decrypted:', new TextDecoder().decode(d))
 }
 ```
-
