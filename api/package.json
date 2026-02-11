@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "test:security": "node tests/security.test.js"
   },
   "dependencies": {
     "body-parser": "^1.20.1",
