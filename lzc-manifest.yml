@@ -10,14 +10,14 @@ author: easychen
 application:
   subdomain: cookiecloud
   routes:
-    - /=http://app:8088
+    - /=http://cookiecloud:8088
   public_path:
     - /api/update
     - /api/get/
     - /api/health
 
 services:
-  app:
+  cookiecloud:
     image: registry.lazycat.cloud/node:18-alpine
     binds:
       - /lzcapp/pkg/content:/workspace
@@ -34,8 +34,7 @@ services:
       cd /workspace/api
       npm install --omit=dev --no-audit --no-fund
     command: |
-      cd /workspace/api
-      node app.js
+      node /workspace/api/app.js
     healthcheck:
       test:
         - CMD-SHELL
