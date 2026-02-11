@@ -1,0 +1,46 @@
+lzc-sdk-version: "0.1"
+name: cookiecloud
+package: cloud.lazycat.app.cookiecloud
+version: 0.4.0
+description: CookieCloud secure cookie sync service with LazyCat setup wizard.
+license: GPL-3.0
+homepage: https://github.com/easychen/CookieCloud
+author: easychen
+
+application:
+  subdomain: cookiecloud
+  routes:
+    - /=http://app:8088
+  public_path:
+    - /api/update
+    - /api/get/
+    - /api/health
+
+services:
+  app:
+    image: registry.lazycat.cloud/node:18-alpine
+    binds:
+      - /lzcapp/pkg/content:/workspace
+      - /lzcapp/var/cookiecloud:/lzcapp/var/cookiecloud
+    environment:
+      - NODE_ENV=production
+      - PORT=8088
+      - API_ROOT=/api
+      - CC_SETUP_UI_ENABLE=true
+      - CC_SETUP_DISABLE_RESTART=false
+      - CC_RUNTIME_CONFIG_FILE=/lzcapp/var/cookiecloud/runtime-config.json
+      - CC_DATA_DIR=/lzcapp/var/cookiecloud/data
+    setupscript: |
+      cd /workspace/api
+      npm install --omit=dev --no-audit --no-fund
+    command: |
+      cd /workspace/api
+      node app.js
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - node -e "require('http').get('http://127.0.0.1:8088/api/health',res=>process.exit(res.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 35s
