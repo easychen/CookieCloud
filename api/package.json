@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "test:security": "node tests/security.test.js"
+    "test:security": "node tests/security.test.js",
+    "test:setup": "node tests/setup-ui.test.js",
+    "test": "npm run test:security && npm run test:setup"
   },
   "dependencies": {
     "body-parser": "^1.20.1",
