@@ -33,8 +33,10 @@ services:
     setupscript: |
       cd /workspace/api
       npm install --omit=dev --no-audit --no-fund
-    command: |
-      node /workspace/api/app.js
+    # LazyCat container may not honor docker restart policies. Wrap the node
+    # process so a graceful exit (e.g. setup apply triggers restart) will
+    # restart the server automatically.
+    command: sh -c 'while true; do node /workspace/api/app.js; code=$?; echo cookiecloud node exited code=$code, restarting in 1s...; sleep 1; done'
     healthcheck:
       test:
         - CMD-SHELL
