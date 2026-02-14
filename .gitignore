@@ -4,6 +4,9 @@ data/
 logs/
 ref/
 .DS_Store
+var/
+*.log
+*.pid
 
 # Build outputs (LazyCat packaging / local builds)
 dist/
