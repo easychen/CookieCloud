@@ -66,18 +66,42 @@ function createApp(options = {}) {
   const setupDisableRestart = parseBoolean(env.CC_SETUP_DISABLE_RESTART, false);
   const setupAuthMiddleware = createSetupAuthMiddleware({ logger: log });
   const setupStaticRoot = path.join(__dirname, 'public', 'setup');
+  const setupDownloadRoot = path.join(setupStaticRoot, 'downloads');
+  const setupExtensionZipName = 'cookiecloud-chrome-mv3.zip';
+  const setupExtensionZipPath = path.join(setupDownloadRoot, setupExtensionZipName);
   const onRestartRequested = typeof options.onRestartRequested === 'function' ? options.onRestartRequested : null;
 
   const app = express();
   const fsp = fs.promises;
 
-  app.use(cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (origin.startsWith('chrome-extension://') || origin.startsWith('moz-extension://')) return callback(null, true);
-      if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error('CORS not allowed'));
+  // LazyCat is behind a gateway/proxy. Trust only the first proxy hop so
+  // express-rate-limit can safely read X-Forwarded-For without becoming permissive.
+  app.set('trust proxy', 1);
+
+  app.use(cors((req, callback) => {
+    const requestOriginRaw = String((req.headers || {}).origin || '').trim();
+    if (!requestOriginRaw) return callback(null, { origin: true });
+
+    if (requestOriginRaw.startsWith('chrome-extension://') || requestOriginRaw.startsWith('moz-extension://')) {
+      return callback(null, { origin: true });
     }
+
+    const requestOrigin = normalizeOrigin(requestOriginRaw);
+    const sameSiteOrigin = normalizeOrigin(buildBaseUrl(req, env));
+    if (requestOrigin && sameSiteOrigin && requestOrigin === sameSiteOrigin) {
+      return callback(null, { origin: true });
+    }
+
+    if (allowedOrigins.includes('*') || allowedOrigins.includes(requestOriginRaw)) {
+      return callback(null, { origin: true });
+    }
+
+    const normalizedAllowedOrigins = allowedOrigins.map((item) => normalizeOrigin(item)).filter(Boolean);
+    if (requestOrigin && normalizedAllowedOrigins.includes(requestOrigin)) {
+      return callback(null, { origin: true });
+    }
+
+    return callback(new Error('CORS not allowed'));
   }));
 
   const forms = multer({ limits: { fieldSize: maxBodyBytes, fields: 128 } });
@@ -224,6 +248,30 @@ function createApp(options = {}) {
       res.sendFile(path.join(setupStaticRoot, 'setup.js'));
     });
 
+    app.get('/setup/api/download/chrome', setupLimiter, setupAuthMiddleware, async (req, res) => {
+      try {
+        await fsp.access(setupExtensionZipPath, fs.constants.R_OK);
+      } catch (error) {
+        res.status(404).json({
+          error: 'Not Found',
+          message: 'Local extension package is not available on server yet.'
+        });
+        return;
+      }
+
+      res.set('Cache-Control', 'no-store');
+      res.download(setupExtensionZipPath, setupExtensionZipName, (error) => {
+        if (!error) return;
+        log.error('setup extension download failed', { message: error.message });
+        if (!res.headersSent) {
+          res.status(500).json({
+            error: 'Internal Server Error',
+            message: 'Failed to stream extension package'
+          });
+        }
+      });
+    });
+
     app.get('/setup/api/bootstrap', setupLimiter, setupAuthMiddleware, (req, res) => {
       const { runtime, config } = loadEffectiveConfig();
       const lazycatIdentity = getLazycatIdentity(req);
@@ -248,12 +296,12 @@ function createApp(options = {}) {
           enable_legacy_read: parseBoolean(config.cc_enable_legacy_read, true),
           data_dir,
           hmac_keys: maskedKeys
-        },
-        plugin_defaults: {
-          server_address: buildServerAddress(req, config.api_root),
-          auth_key_id: maskedKeys[0]?.key_id || '',
-          crypto_type: AES_GCM_TYPE
-        },
+	        },
+	        plugin_defaults: {
+	          server_address: buildServerAddress(req, config.api_root, env),
+	          auth_key_id: maskedKeys[0]?.key_id || '',
+	          crypto_type: AES_GCM_TYPE
+	        },
         restart: {
           auto_restart_enabled: !setupDisableRestart,
           disable_flag: 'CC_SETUP_DISABLE_RESTART'
@@ -279,12 +327,12 @@ function createApp(options = {}) {
         return;
       }
 
-      const preview = buildSetupPreview(validation.value, {
-        baseUrl: buildBaseUrl(req),
-        runtimeConfigPath
-      });
-      res.status(200).json(preview);
-    });
+	      const preview = buildSetupPreview(validation.value, {
+	        baseUrl: buildBaseUrl(req, env),
+	        runtimeConfigPath
+	      });
+	      res.status(200).json(preview);
+	    });
 
     app.post('/setup/api/apply', setupLimiter, setupAuthMiddleware, async (req, res) => {
       const validation = validateSetupConfigPayload(req.body || {});
@@ -447,15 +495,26 @@ function isSupportedCryptoType(cryptoType) {
   return ['legacy', 'aes-128-cbc-fixed', 'aes-256-gcm-v1'].includes(cryptoType);
 }
 
-function buildBaseUrl(req) {
+function buildBaseUrl(req, env = process.env) {
   const forwardedProto = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
   const protocol = forwardedProto || req.protocol || 'http';
-  const host = req.get('host') || '127.0.0.1:8088';
+
+  const lazycatAppDomain = String((env || {}).LAZYCAT_APP_DOMAIN || '').trim();
+  const forwardedHost = String(req.headers['x-forwarded-host'] || '').split(',')[0].trim();
+  const host = lazycatAppDomain || forwardedHost || req.get('host') || '127.0.0.1:8088';
   return `${protocol}://${host}`;
 }
 
-function buildServerAddress(req, apiRoot) {
-  return `${buildBaseUrl(req)}${normalizeApiRootValue(apiRoot)}`;
+function normalizeOrigin(urlLike) {
+  try {
+    return new URL(String(urlLike || '').trim()).origin;
+  } catch (error) {
+    return '';
+  }
+}
+
+function buildServerAddress(req, apiRoot, env = process.env) {
+  return `${buildBaseUrl(req, env)}${normalizeApiRootValue(apiRoot)}`;
 }
 
 function isLikelyLazycatEnvironment(env) {
@@ -489,7 +548,7 @@ function buildTutorialSections() {
         'CC_HMAC_KEYS：至少 1 组 key_id:secret，secret 建议 64 位以上随机串。',
         'CC_HMAC_TTL_SEC：签名有效期，默认 300 秒。',
         'CC_MAX_BODY_MB：请求体上限，默认 10MB。',
-        'CC_ALLOWED_ORIGINS：跨域白名单，通常可留空。',
+        'CC_ALLOWED_ORIGINS：仅用于放行第三方网页来源；同域 setup 与扩展来源默认允许。',
         'CC_ENABLE_LEGACY_READ：迁移期 true，完成迁移后建议 false。'
       ]
     },

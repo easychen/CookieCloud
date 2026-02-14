@@ -50,6 +50,16 @@ child.stderr.on('data', (chunk) => {
     assert.strictEqual(response.statusCode, 200, 'setup page with login header should be available');
     assert.match(response.bodyText, /CookieCloud.*配置向导/, 'setup page html should be returned');
 
+    response = await request({ method: 'GET', path: '/setup/api/download/chrome' });
+    assert.strictEqual(response.statusCode, 401, 'extension download without login header should be blocked');
+
+    response = await request({
+      method: 'GET',
+      path: '/setup/api/download/chrome',
+      headers: { 'X-HC-User-ID': 'u10001' }
+    });
+    assert.strictEqual(response.statusCode, 404, 'extension download should return 404 when package is missing');
+
     response = await request({
       method: 'GET',
       path: '/setup/api/bootstrap',
@@ -77,6 +87,93 @@ child.stderr.on('data', (chunk) => {
     assert.strictEqual(response.statusCode, 400, 'invalid preview payload should fail');
 
     const realSecret = 'abcde12345abcde12345abcde12345abcde12345abcde12345abcde12345';
+
+    response = await request({
+      method: 'POST',
+      path: '/setup/api/preview',
+      headers: {
+        'X-HC-User-ID': 'u10001',
+        'Content-Type': 'application/json',
+        'Origin': `http://127.0.0.1:${port}`
+      },
+      body: JSON.stringify({
+        api_root: '/api',
+        hmac_keys: [{ key_id: 'k1', secret: realSecret }],
+        hmac_ttl_sec: 300,
+        max_body_mb: 10,
+        allowed_origins: [],
+        enable_legacy_read: true
+      })
+    });
+    assert.strictEqual(response.statusCode, 200, 'same-origin preview request should be allowed');
+
+    // Extra coverage: LazyCat deployment may rewrite Host to an internal service name while the browser
+    // origin remains the public domain. Start a second server with LAZYCAT_APP_DOMAIN set.
+    const port2 = port + 2000 + Math.floor(Math.random() * 500);
+    const runtimeRoot2 = fs.mkdtempSync(path.join(os.tmpdir(), 'cookiecloud-setup-'));
+    const runtimeFile2 = path.join(runtimeRoot2, 'runtime-config.json');
+    const dataDir2 = path.join(runtimeRoot2, 'data');
+    const env2 = {
+      ...env,
+      PORT: String(port2),
+      LAZYCAT_APP_DOMAIN: 'cookiecloud.example.test',
+      CC_RUNTIME_CONFIG_FILE: runtimeFile2,
+      CC_DATA_DIR: dataDir2
+    };
+    const child2 = spawn('node', ['app.js'], {
+      cwd: apiDir,
+      env: env2,
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+    try {
+      await waitForHealth(8000, port2);
+      response = await request({
+        method: 'POST',
+        path: '/setup/api/preview',
+        port: port2,
+        headers: {
+          'X-HC-User-ID': 'u10001',
+          'Content-Type': 'application/json',
+          'Origin': 'https://cookiecloud.example.test',
+          'Host': 'cookiecloud:8088',
+          'X-Forwarded-Proto': 'https'
+        },
+        body: JSON.stringify({
+          api_root: '/api',
+          hmac_keys: [{ key_id: 'k1', secret: realSecret }],
+          hmac_ttl_sec: 300,
+          max_body_mb: 10,
+          allowed_origins: [],
+          enable_legacy_read: true
+        })
+      });
+      assert.strictEqual(response.statusCode, 200, 'same-site preview should be allowed when LAZYCAT_APP_DOMAIN is set');
+    } finally {
+      child2.kill('SIGTERM');
+      await wait(150);
+      safeRm(runtimeRoot2);
+    }
+
+    response = await request({
+      method: 'POST',
+      path: '/setup/api/preview',
+      headers: {
+        'X-HC-User-ID': 'u10001',
+        'Content-Type': 'application/json',
+        'Origin': 'https://evil.example'
+      },
+      body: JSON.stringify({
+        api_root: '/api',
+        hmac_keys: [{ key_id: 'k1', secret: realSecret }],
+        hmac_ttl_sec: 300,
+        max_body_mb: 10,
+        allowed_origins: [],
+        enable_legacy_read: true
+      })
+    });
+    assert.strictEqual(response.statusCode, 403, 'cross-origin preview request should still be blocked');
+    assert.strictEqual(response.json?.message, 'Origin is not allowed', 'cross-origin preview should return CORS message');
+
     response = await request({
       method: 'POST',
       path: '/setup/api/preview',
@@ -150,11 +247,11 @@ function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function waitForHealth(timeoutMs = 8000) {
+async function waitForHealth(timeoutMs = 8000, targetPort = port) {
   const start = Date.now();
 
   while (Date.now() - start < timeoutMs) {
-    const result = await request({ method: 'GET', path: '/api/health' }).catch(() => null);
+    const result = await request({ method: 'GET', path: '/api/health', port: targetPort }).catch(() => null);
     if (result && result.statusCode === 200) return;
     await wait(200);
   }
@@ -162,11 +259,11 @@ async function waitForHealth(timeoutMs = 8000) {
   throw new Error('server failed to start in time');
 }
 
-function request({ method, path: reqPath, headers, body }) {
+function request({ method, path: reqPath, headers, body, port: portOverride }) {
   return new Promise((resolve, reject) => {
     const requestOptions = {
       hostname: '127.0.0.1',
-      port,
+      port: portOverride || port,
       path: reqPath,
       method,
       headers: headers || {}

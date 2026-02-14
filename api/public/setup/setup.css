@@ -662,6 +662,30 @@ pre {
   transform: translateY(-1px);
 }
 
+.plugin-link-local {
+  border-color: #bb3e03;
+  background: #fff5f0;
+}
+
+.plugin-link-local:hover {
+  border-color: #bb3e03;
+  box-shadow: 0 2px 10px rgba(187, 62, 3, 0.18);
+}
+
+.plugin-hint {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.plugin-hint code {
+  font-family: "SF Mono", "Menlo", "Monaco", monospace;
+  background: #eef1f8;
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+
 .plugin-icon {
   font-size: 18px;
 }
