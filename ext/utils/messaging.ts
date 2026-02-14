@@ -14,8 +14,13 @@ export async function handleConfigMessage(payload: any): Promise<ResponseBody> {
     await download_cookie(payload) : 
     await upload_cookie(payload);
   
+  const action = typeof result?.action === 'string' && result.action ? result.action : 'error';
+  const note = (typeof result?.note === 'string' && result.note)
+    ? result.note
+    : (typeof result?.message === 'string' && result.message ? result.message : null);
+
   return {
-    message: result.action,
-    note: result.note || null,
+    message: action,
+    note,
   };
 }

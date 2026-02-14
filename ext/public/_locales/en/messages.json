@@ -129,8 +129,26 @@
     "syncManual": {
         "message": "Manual Sync"
     },
+    "openInTab": {
+        "message": "Open in New Tab"
+    },
+    "openInTabHint": {
+        "message": "Open settings in a normal browser tab to avoid popup auto-closing on blur"
+    },
+    "openInTabFailed": {
+        "message": "Failed to open settings tab, please try again"
+    },
     "save": {
         "message": "Save"
+    },
+    "autoSaveSaving": {
+        "message": "Saving automatically..."
+    },
+    "autoSaveSaved": {
+        "message": "Saved automatically"
+    },
+    "autoSaveFailed": {
+        "message": "Auto-save failed"
     },
     "copySuccess": {
         "message": "Copied to clipboard"
