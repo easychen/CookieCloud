@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f1f5f9;
+}
+
 @layer components {
   .btn {
     @apply px-4 py-2 rounded font-medium cursor-pointer transition-all duration-300;

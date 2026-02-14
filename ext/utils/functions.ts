@@ -38,6 +38,17 @@ const AES_GCM_TYPE = 'aes-256-gcm-v1';
 const FIXED_IV_TYPE = 'aes-128-cbc-fixed';
 const LEGACY_TYPE = 'legacy';
 const PBKDF2_ITERATIONS = 120000;
+const FETCH_TIMEOUT_MS = 15000;
+
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number = FETCH_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const id = globalThis.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    globalThis.clearTimeout(id);
+  }
+}
 
 function is_firefox(): boolean {
   return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -140,15 +151,13 @@ export async function upload_cookie(payload: UploadPayload): Promise<any> {
   const { uuid, password } = payload;
 
   if (!password || !uuid) {
-    alert("Invalid parameters");
     showBadge("err");
-    return false;
+    return { action: 'error', note: 'Invalid parameters' };
   }
 
   if (!payload.auth_key_id || !payload.auth_secret) {
-    alert(browser.i18n.getMessage('authConfigRequired') || 'Auth Key ID and Auth Secret are required');
     showBadge('err');
-    return false;
+    return { action: 'error', note: browser.i18n.getMessage('authConfigRequired') || 'Auth Key ID and Auth Secret are required' };
   }
 
   const domains = payload.domains?.trim().length ? payload.domains.trim().split("\n") : [];
@@ -185,15 +194,19 @@ export async function upload_cookie(payload: UploadPayload): Promise<any> {
       ...buildSignedHeaders(payload, 'POST', endpoint, uuid, payload2)
     };
 
-    const response = await fetch(endpoint, {
+    const response = await fetchWithTimeout(endpoint, {
       method: 'POST',
       headers,
       body: gzip(JSON.stringify(payload2)) as any
     });
 
-    const result = await response.json().catch(() => ({ action: 'error' }));
+    const result = await response.json().catch(() => null);
     if (!response.ok) {
-      return result;
+      if (result && typeof result === 'object') return result;
+      return { action: 'error', note: `HTTP ${response.status}` };
+    }
+    if (!result || typeof result !== 'object') {
+      return { action: 'error', note: 'Invalid server response' };
     }
 
     if (result && result.action === 'done') {
@@ -204,7 +217,9 @@ export async function upload_cookie(payload: UploadPayload): Promise<any> {
   } catch (error) {
     console.log("error", error);
     showBadge("err");
-    return false;
+    const isAbort = !!error && typeof error === 'object' && (error as any).name === 'AbortError';
+    const message = isAbort ? 'Request timeout' : (error instanceof Error ? error.message : String(error || ''));
+    return { action: 'error', note: message || 'Network error' };
   }
 }
 
@@ -212,9 +227,8 @@ export async function download_cookie(payload: DownloadPayload): Promise<any> {
   const { uuid, password, expire_minutes, crypto_type } = payload;
 
   if (!payload.auth_key_id || !payload.auth_secret) {
-    alert(browser.i18n.getMessage('authConfigRequired') || 'Auth Key ID and Auth Secret are required');
     showBadge('err');
-    return false;
+    return { action: 'error', note: browser.i18n.getMessage('authConfigRequired') || 'Auth Key ID and Auth Secret are required' };
   }
 
   let endpoint = payload.endpoint.trim().replace(/\/+$/, '') + '/get/' + uuid;
@@ -225,7 +239,7 @@ export async function download_cookie(payload: DownloadPayload): Promise<any> {
   try {
     showBadge("↓", "blue");
 
-    const response = await fetch(endpoint, {
+    const response = await fetchWithTimeout(endpoint, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -284,7 +298,9 @@ export async function download_cookie(payload: DownloadPayload): Promise<any> {
   } catch (error) {
     console.log("error", error);
     showBadge("err");
-    return false;
+    const isAbort = !!error && typeof error === 'object' && (error as any).name === 'AbortError';
+    const message = isAbort ? 'Request timeout' : (error instanceof Error ? error.message : String(error || ''));
+    return { action: 'error', note: message || 'Network error' };
   }
 }
 
