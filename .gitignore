@@ -4,3 +4,7 @@ data/
 logs/
 ref/
 .DS_Store
+
+# Build outputs (LazyCat packaging / local builds)
+dist/
+.pkgout/
