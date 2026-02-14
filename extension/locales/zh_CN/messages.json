@@ -168,6 +168,18 @@
     {
         "message":"手动同步"
     },
+    "openInTab":
+    {
+        "message":"在新标签页打开"
+    },
+    "openInTabHint":
+    {
+        "message":"在浏览器标签页打开配置页，避免弹窗失焦自动关闭"
+    },
+    "openInTabFailed":
+    {
+        "message":"打开失败，请重试"
+    },
     "save":
     {
         "message":"保存"

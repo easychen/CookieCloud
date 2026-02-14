@@ -73,6 +73,20 @@ function IndexPopup() {
     setData({...data,'password':String(short_uid.generate())});
   }
 
+  async function openConfigInTab()
+  {
+    try
+    {
+      await browser.tabs.create({
+        url: browser.runtime.getURL("popup.html")
+      });
+    }catch(error)
+    {
+      console.error("open config in tab failed", error);
+      alert(browser.i18n.getMessage("openInTabFailed") || "打开失败，请重试");
+    }
+  }
+
   useEffect(() => {
     async function load_config()
     {
@@ -182,7 +196,8 @@ function IndexPopup() {
         <div className="bg-blue-400 text-white p-2 my-2 rounded">{browser.i18n.getMessage('keepLiveStop')}</div>
         </>}
         <div className="flex flex-row justify-between mt-2">
-          <div className="left text-gray-400">
+          <div className="left text-gray-400 flex flex-row items-center flex-wrap">
+            <button className="p-2 rounded hover:bg-gray-100 mr-2" title={browser.i18n.getMessage("openInTabHint") || "在浏览器标签页打开配置页，避免弹窗失焦关闭"} onClick={()=>openConfigInTab()}>{browser.i18n.getMessage("openInTab") || "在新标签页打开"}</button>
             {data['type'] && data['type'] != 'pause' && <><button className="p-2 rounded hover:bg-blue-100 mr-2" onClick={()=>test(browser.i18n.getMessage('syncManual'))}>{browser.i18n.getMessage('syncManual')}</button><button className="hover:bg-blue-100 p-2 rounded" onClick={()=>test(browser.i18n.getMessage('test'))}>{browser.i18n.getMessage('test')}</button></>}
 
           </div>
