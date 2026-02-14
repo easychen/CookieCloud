@@ -130,7 +130,9 @@ CC_HMAC_TTL_SEC=300
 # 请求体大小限制（MB），默认 10
 CC_MAX_BODY_MB=10
 
-# CORS 白名单，逗号分隔；留空时仅允许无 Origin 请求
+# CORS 白名单，逗号分隔（用于额外放行第三方网页来源）
+# 同域 setup 请求和浏览器扩展 Origin 默认放行。
+# 仅在需要放行第三方网页来源时再填写。
 CC_ALLOWED_ORIGINS=
 
 # 迁移期保持 true，迁移完成后建议改为 false
@@ -166,6 +168,12 @@ docker run \
 2. 填写 `API Root / HMAC Keys / TTL / Max Body / Allowed Origins`。
 3. 点击“校验并预览”，确认插件模板和验证命令。
 4. 点击“保存并重启”，等待服务重启后再执行联调。
+
+`Allowed Origins` 填写建议：
+
+1. 与当前服务同域的 setup 页面请求默认允许，无需额外填写。
+2. 浏览器扩展来源默认允许，无需额外填写。
+3. `CC_ALLOWED_ORIGINS` 仅用于显式放行第三方网页来源。
 
 关键运行时变量：
 

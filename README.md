@@ -135,7 +135,8 @@ CC_HMAC_TTL_SEC=300
 CC_MAX_BODY_MB=10
 
 # CORS allowlist (comma-separated), e.g. https://panel.example.com
-# Empty means only non-browser-origin requests are allowed.
+# Same-origin setup requests and extension origins are always allowed.
+# Keep empty unless you need to allow third-party web pages.
 CC_ALLOWED_ORIGINS=
 
 # Keep true during migration, set false after old data is migrated
@@ -171,6 +172,12 @@ Minimal flow:
 2. Fill `API Root / HMAC Keys / TTL / Max Body / Allowed Origins`.
 3. Click **Preview** and verify generated plugin template and validation commands.
 4. Click **Save and Restart**, then run integration checks after restart.
+
+Notes for `Allowed Origins`:
+
+1. The setup page on the same domain is allowed by default.
+2. Browser extension origins are allowed by default.
+3. `CC_ALLOWED_ORIGINS` is only needed for explicit third-party web origins.
 
 Key runtime variables:
 
