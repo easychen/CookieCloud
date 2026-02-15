@@ -92,17 +92,26 @@ docker run -e API_ROOT=/cookie -p=8088:8088 easychen/cookiecloud:latest
 
 ##### Start with Docker-compose
 
+Recommended local entrypoint (worktree-parallel, reproducible):
+
+```bash
+bash scripts/run_local.sh --instance a --port 18088
+# UI: http://127.0.0.1:18088/
+# Marker: var/logs/a-docker.env
+
+bash scripts/stop_local.sh --instance a
+```
+
 ```yml
 version: '3'
 services:
   cookiecloud:
     image: easychen/cookiecloud:latest
-    container_name: cookiecloud-app
     restart: always
     volumes:
       - ./data:/data/api/data
     ports:
-      - 8088:8088
+      - "${COOKIECLOUD_PORT:-8088}:8088"
 ```
 
 [docker-compose.yml provided by aitixiong](https://github.com/easychen/CookieCloud/issues/42)

@@ -8,7 +8,9 @@
 
 ## 运行与交付（最小导航）
 
-- Run：见 `README.md` 的运行示例
+- Run（推荐）：`bash scripts/run_local.sh --instance <name> --port <port>`
+- Stop（推荐）：`bash scripts/stop_local.sh --instance <name>`
+- Run（手动）：见 `README.md` 的运行示例
 - Test：看 `README.md`（当前以仓库内说明为准），缺失时可补 `pytest` 或 `npm`/`yarn` 对应最小检测
 - Build：`lzc-cli project build`
 - Deploy：`lzc-cli app install`（或仓库推荐流程）
