@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+CC_INVOCATION_PWD="${PWD}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
@@ -35,16 +36,8 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ -z "$INSTANCE" ]]; then
-  echo "Error: --instance is required" >&2
-  exit 2
-fi
-
-if ! command -v docker >/dev/null 2>&1; then
-  echo "Error: docker is not installed" >&2
-  exit 2
-fi
+validate_instance "$INSTANCE"
+require_cmd docker
 
 PROJECT="cookiecloud_${INSTANCE}"
 docker compose -p "$PROJECT" -f Docker-compose.yml down
-
