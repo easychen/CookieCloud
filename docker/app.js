@@ -1,17 +1,48 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const cors = require('cors');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
+const promClient = require('prom-client');
 const logger = require('./utils/logger');
 const { createHmacAuthMiddleware } = require('./utils/auth');
 const { cookieDecrypt, normalizeCryptoType, AES_GCM_TYPE } = require('./utils/crypto');
 
 const app = express();
 const fsp = fs.promises;
+
+const httpRequestsTotal = new promClient.Counter({
+  name: 'cookiecloud_http_requests_total',
+  help: 'Total HTTP requests',
+  labelNames: ['method', 'route', 'status_code']
+});
+
+app.use((req, res, next) => {
+  const incoming = req.get('x-request-id');
+  const requestId = (typeof incoming === 'string' && incoming.trim().length > 0)
+    ? incoming.trim()
+    : crypto.randomUUID();
+
+  req.request_id = requestId;
+  res.setHeader('x-request-id', requestId);
+  next();
+});
+
+app.use((req, res, next) => {
+  res.on('finish', () => {
+    const route = (req.route && req.route.path) ? String(req.route.path) : String(req.path || '');
+    httpRequestsTotal.inc({
+      method: req.method,
+      route,
+      status_code: String(res.statusCode)
+    });
+  });
+  next();
+});
 
 const data_dir = path.join(__dirname, 'data');
 if (!fs.existsSync(data_dir)) fs.mkdirSync(data_dir, { recursive: true });
@@ -77,7 +108,7 @@ app.post(`${api_root}/update`, hmacAuthMiddleware, async (req, res) => {
     }
 
     if (typeof encrypted !== 'string' || encrypted.length === 0) {
-      logger.warn('Bad Request: Missing encrypted payload');
+      logger.warn('Bad Request: Missing encrypted payload', { request_id: req.request_id });
       res.status(400).json({ error: 'Bad Request', message: 'encrypted is required' });
       return;
     }
@@ -104,7 +135,7 @@ app.post(`${api_root}/update`, hmacAuthMiddleware, async (req, res) => {
 
     res.json({ action: verify === content ? 'done' : 'error' });
   } catch (error) {
-    logger.error('update error:', error);
+    logger.error('update error', { request_id: req.request_id, err: error });
     res.status(500).send('Internal Serverless Error');
   }
 });
@@ -143,7 +174,7 @@ app.all(`${api_root}/get/:uuid`, hmacAuthMiddleware, async (req, res) => {
         const parsed = cookieDecrypt(uuid, data.encrypted, req.body.password, useCryptoType, { enableLegacyRead });
         res.json(parsed);
       } catch (error) {
-        logger.warn('decrypt failed', { uuid, crypto_type: useCryptoType, message: error.message });
+        logger.warn('decrypt failed', { request_id: req.request_id, uuid, crypto_type: useCryptoType, message: error.message });
         res.status(400).json({ error: 'Decrypt Failed', message: 'Invalid password or payload format' });
       }
       return;
@@ -154,13 +185,13 @@ app.all(`${api_root}/get/:uuid`, hmacAuthMiddleware, async (req, res) => {
       crypto_type: data.crypto_type || 'legacy'
     });
   } catch (error) {
-    logger.error('get error:', error);
+    logger.error('get error', { request_id: req.request_id, err: error });
     res.status(500).send('Internal Serverless Error');
   }
 });
 
 app.use((req, res) => {
-  logger.warn(`404 Not Found: ${req.method} ${req.originalUrl}`);
+  logger.warn('404 Not Found', { request_id: req.request_id, method: req.method, path: req.originalUrl });
   res.status(404).json({
     error: 'Not Found',
     message: `The requested URL ${req.originalUrl} was not found on this server.`,
@@ -186,7 +217,7 @@ app.use((err, req, res, next) => {
     return;
   }
 
-  logger.error('Unhandled Error:', err);
+  logger.error('Unhandled Error', { request_id: req.request_id, err });
   res.status(500).send('Internal Serverless Error');
 });
 
