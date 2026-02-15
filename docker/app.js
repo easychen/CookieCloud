@@ -83,6 +83,66 @@ app.use(limiter);
 
 const api_root = process.env.API_ROOT ? process.env.API_ROOT.trim().replace(/\/+$/, '') : '';
 
+// v2 root endpoints (not under API_ROOT)
+app.get('/healthz', (req, res) => {
+  res.json({
+    ok: true,
+    request_id: req.request_id,
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+app.get('/readyz', async (req, res) => {
+  const checks = {
+    data_dir: { ok: false, path: data_dir, error: '' }
+  };
+
+  try {
+    await fsp.access(data_dir, fs.constants.R_OK | fs.constants.W_OK);
+    checks.data_dir.ok = true;
+  } catch (error) {
+    checks.data_dir.error = error && error.message ? error.message : String(error);
+  }
+
+  const ok = Boolean(checks.data_dir.ok);
+  res.status(ok ? 200 : 503).json({
+    ok,
+    request_id: req.request_id,
+    checks
+  });
+});
+
+app.get('/diagnostics', async (req, res) => {
+  const dataDirWritable = await fsp.access(data_dir, fs.constants.W_OK).then(() => true).catch(() => false);
+
+  res.status(200).json({
+    ok: true,
+    request_id: req.request_id,
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    pid: process.pid,
+    node: process.version,
+    api_root,
+    data_dir: {
+      path: data_dir,
+      writable: dataDirWritable
+    },
+    config: {
+      max_body_mb: maxBodyMb,
+      allowed_origins_count: allowedOrigins.length,
+      enable_legacy_read: enableLegacyRead,
+      auth_keys_configured: Boolean(process.env.CC_HMAC_KEYS),
+      hmac_ttl_sec: process.env.CC_HMAC_TTL_SEC ? String(process.env.CC_HMAC_TTL_SEC) : ''
+    }
+  });
+});
+
+app.get('/metrics', async (req, res) => {
+  res.setHeader('Content-Type', promClient.register.contentType);
+  res.send(await promClient.register.metrics());
+});
+
 app.get(`${api_root}/health`, (req, res) => {
   res.json({
     status: 'OK',
