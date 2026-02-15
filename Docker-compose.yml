@@ -2,6 +2,7 @@ version: '3'
 services:
   cookiecloud:
     image: easychen/cookiecloud:latest
+    build: ./docker
     restart: always
     volumes:
       - ./data:/data/api/data
