@@ -1,0 +1,29 @@
+manifest: ./lzc-manifest.yml
+
+buildscript: |
+  set -e
+  rm -rf dist .pkgout
+  mkdir -p dist .pkgout
+  npm --prefix api install --omit=dev --no-audit --no-fund
+  npm --prefix ext install --no-audit --no-fund
+  npm --prefix ext run zip
+  cp -R api dist/api
+  mkdir -p dist/api/public/setup/downloads
+  chrome_zip="$(ls -1 ext/.output/*-chrome.zip | head -n 1)"
+  cp "$chrome_zip" dist/api/public/setup/downloads/cookiecloud-chrome-mv3.zip
+  cp README.md dist/README.md
+  cp README_cn.md dist/README_cn.md
+
+contentdir: ./dist
+pkgout: ./.pkgout
+icon: ./extension/assets/icon.png
+
+devshell:
+  routes:
+    - /=http://127.0.0.1:8088
+  dependencies:
+    - nodejs
+    - npm
+  setupscript: |
+    cd /lzcapp/pkg/content/api
+    npm install

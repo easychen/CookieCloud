@@ -5,7 +5,11 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "test:security": "node tests/security.test.js",
+    "test:setup": "node tests/setup-ui.test.js",
+    "test:wizard-ui": "node tests/setup-wizard-interaction.test.js",
+    "test": "npm run test:security && npm run test:setup && npm run test:wizard-ui"
   },
   "dependencies": {
     "body-parser": "^1.20.1",
@@ -19,6 +23,7 @@
     "winston": "^3.11.0"
   },
   "devDependencies": {
+    "jsdom": "^26.1.0",
     "nodemon": "^2.0.20"
   }
 }

@@ -76,6 +76,26 @@
     {
         "message":"丢失后数据失效，请妥善保管"
     },
+    "authKeyId":
+    {
+        "message":"Auth Key ID"
+    },
+    "authKeyIdPlaceholder":
+    {
+        "message":"用于服务端定位签名密钥"
+    },
+    "authSecret":
+    {
+        "message":"Auth Secret"
+    },
+    "authSecretPlaceholder":
+    {
+        "message":"用于生成请求签名，需与服务端配置一致"
+    },
+    "authConfigRequired":
+    {
+        "message":"Auth Key ID 和 Auth Secret 不能为空"
+    },
     "generate":
     {
         "message":"自动生成"
@@ -148,9 +168,33 @@
     {
         "message":"手动同步"
     },
+    "openInTab":
+    {
+        "message":"在新标签页打开"
+    },
+    "openInTabHint":
+    {
+        "message":"在浏览器标签页打开配置页，避免弹窗失焦自动关闭"
+    },
+    "openInTabFailed":
+    {
+        "message":"打开失败，请重试"
+    },
     "save":
     {
         "message":"保存"
+    },
+    "autoSaveSaving":
+    {
+        "message":"自动保存中..."
+    },
+    "autoSaveSaved":
+    {
+        "message":"已自动保存"
+    },
+    "autoSaveFailed":
+    {
+        "message":"自动保存失败"
     },
     "copySuccess":
     {
@@ -164,6 +208,10 @@
     {
         "message":"加密算法"
     },
+    "cryptoAesGcm":
+    {
+        "message":"AES-256-GCM(PBKDF2)"
+    },
     "cryptoLegacy":
     {
         "message":"CryptoJS(动态IV)"
@@ -175,6 +223,10 @@
     "cryptoLegacyDesc":
     {
         "message":"使用CryptoJS加密算法，会动态生成IV"
+    },
+    "cryptoAesGcmDesc":
+    {
+        "message":"推荐：AES-256-GCM + PBKDF2，带认证标签，安全性更高"
     },
     "cryptoAesCbcFixedDesc":
     {

@@ -1,8 +1,37 @@
-import { upload_cookie, download_cookie, load_data, save_data, sleep } from '../utils/functions';
+import { upload_cookie, download_cookie, load_data, sleep } from '../utils/functions';
 import browser from 'webextension-polyfill';
+
+const CONFIG_PAGE_PATH = 'config.html';
+
+function isConfigReady(config: any): boolean {
+  const requiredFields = ['endpoint', 'password', 'uuid', 'type', 'auth_key_id', 'auth_secret'];
+  return requiredFields.every((field) => String(config?.[field] ?? '').trim().length > 0);
+}
+
+async function openOrFocusConfigTab() {
+  const targetUrl = browser.runtime.getURL(CONFIG_PAGE_PATH);
+  const tabs = await browser.tabs.query({ url: `${targetUrl}*` });
+  const existsTab = tabs[0];
+
+  if (existsTab?.id != null) {
+    await browser.tabs.update(existsTab.id, { active: true });
+    if (existsTab.windowId != null) {
+      await browser.windows.update(existsTab.windowId, { focused: true });
+    }
+    return;
+  }
+
+  await browser.tabs.create({ url: targetUrl, active: true });
+}
 
 export default defineBackground(() => {
   console.log('CookieCloud Background Script Started', { id: browser.runtime.id });
+
+  browser.action.onClicked.addListener(() => {
+    openOrFocusConfigTab().catch((error) => {
+      console.error('Failed to open config tab:', error);
+    });
+  });
 
   browser.runtime.onInstalled.addListener(function (details) {
     if (details.reason == "install") {
@@ -26,6 +55,11 @@ export default defineBackground(() => {
       if (config) {
         if (config.type && config.type == 'pause') {
           console.log("Pause mode, no sync");
+          return true;
+        }
+
+        if (!isConfigReady(config)) {
+          console.log("Config is incomplete, skip sync this round");
           return true;
         }
 

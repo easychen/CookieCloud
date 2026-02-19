@@ -60,6 +60,21 @@
     "syncPasswordPlaceholder": {
         "message": "Data will be unable to be decrypted if lost"
     },
+    "authKeyId": {
+        "message": "Auth Key ID"
+    },
+    "authKeyIdPlaceholder": {
+        "message": "Used by server to locate the signing secret"
+    },
+    "authSecret": {
+        "message": "Auth Secret"
+    },
+    "authSecretPlaceholder": {
+        "message": "Used to sign requests, must match server-side secret"
+    },
+    "authConfigRequired": {
+        "message": "Auth Key ID and Auth Secret are required"
+    },
     "generate": {
         "message": "Generate"
     },
@@ -114,8 +129,26 @@
     "syncManual": {
         "message": "Manual Sync"
     },
+    "openInTab": {
+        "message": "Open in New Tab"
+    },
+    "openInTabHint": {
+        "message": "Open settings in a normal browser tab to avoid popup auto-closing on blur"
+    },
+    "openInTabFailed": {
+        "message": "Failed to open settings tab, please try again"
+    },
     "save": {
         "message": "Save"
+    },
+    "autoSaveSaving": {
+        "message": "Saving automatically..."
+    },
+    "autoSaveSaved": {
+        "message": "Saved automatically"
+    },
+    "autoSaveFailed": {
+        "message": "Auto-save failed"
     },
     "copySuccess": {
         "message": "Copied to clipboard"
@@ -126,6 +159,9 @@
     "cryptoAlgorithm": {
         "message": "Encryption Algorithm"
     },
+    "cryptoAesGcm": {
+        "message": "AES-256-GCM (PBKDF2)"
+    },
     "cryptoLegacy": {
         "message": "CryptoJS (Dynamic IV)"
     },
@@ -134,6 +170,9 @@
     },
     "cryptoLegacyDesc": {
         "message": "Uses CryptoJS encryption algorithm with dynamic IV generation"
+    },
+    "cryptoAesGcmDesc": {
+        "message": "Recommended: AES-256-GCM with PBKDF2 and authentication tag"
     },
     "cryptoAesCbcFixedDesc": {
         "message": "Uses standard AES-128-CBC algorithm with fixed IV (0x0)"

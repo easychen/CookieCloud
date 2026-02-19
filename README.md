@@ -92,17 +92,26 @@ docker run -e API_ROOT=/cookie -p=8088:8088 easychen/cookiecloud:latest
 
 ##### Start with Docker-compose
 
+Recommended local entrypoint (worktree-parallel, reproducible):
+
+```bash
+bash scripts/run_local.sh --instance a --port 18088
+# UI: http://127.0.0.1:18088/
+# Marker: var/logs/a-docker.env
+
+bash scripts/stop_local.sh --instance a
+```
+
 ```yml
 version: '3'
 services:
   cookiecloud:
     image: easychen/cookiecloud:latest
-    container_name: cookiecloud-app
     restart: always
     volumes:
       - ./data:/data/api/data
     ports:
-      - 8088:8088
+      - "${COOKIECLOUD_PORT:-8088}:8088"
 ```
 
 [docker-compose.yml provided by aitixiong](https://github.com/easychen/CookieCloud/issues/42)
@@ -116,6 +125,104 @@ cd api && yarn install && node app.js
 ```
 Default port 8088, also supports the API_ROOT environment variable
 
+### Public Exposure Security (must-read)
+
+If your CookieCloud endpoint is accessible from the public internet (including public domain names provided by platform vendors), treat it as an internet-exposed service.
+
+This version enforces HMAC request signatures by default on `/update` and `/get/:uuid`.
+
+Required environment variables:
+
+```bash
+# Format: key_id:secret[,key_id2:secret2]
+CC_HMAC_KEYS=default:replace-with-a-long-random-secret
+
+# Signature validity window in seconds (default 300)
+CC_HMAC_TTL_SEC=300
+
+# Request body size limit in MB (default 10)
+CC_MAX_BODY_MB=10
+
+# CORS allowlist (comma-separated), e.g. https://panel.example.com
+# Same-origin setup requests and extension origins are always allowed.
+# Keep empty unless you need to allow third-party web pages.
+CC_ALLOWED_ORIGINS=
+
+# Keep true during migration, set false after old data is migrated
+CC_ENABLE_LEGACY_READ=true
+```
+
+Docker example:
+
+```bash
+docker run \
+  -p=8088:8088 \
+  -e CC_HMAC_KEYS='default:replace-with-a-long-random-secret' \
+  -e CC_HMAC_TTL_SEC=300 \
+  -e CC_MAX_BODY_MB=10 \
+  -e CC_ENABLE_LEGACY_READ=true \
+  easychen/cookiecloud:latest
+```
+
+### Built-in LazyCat Setup Page (`/setup`)
+
+This repository now includes a built-in backend setup page for LazyCat deployments.
+
+Highlights:
+
+1. Setup URL is `/setup` and enabled by default (`CC_SETUP_UI_ENABLE=true`).
+2. Server performs a second-layer auth check on `X-HC-User-ID`; missing header returns `401`.
+3. Supports `Preview`, `Apply + Restart`, and `Export redacted snapshot`.
+4. API responses are redacted and never return plaintext secrets.
+
+Minimal flow:
+
+1. Open `https://<your-domain>/setup`.
+2. Fill `API Root / HMAC Keys / TTL / Max Body / Allowed Origins`.
+3. Click **Preview** and verify generated plugin template and validation commands.
+4. Click **Save and Restart**, then run integration checks after restart.
+
+Notes for `Allowed Origins`:
+
+1. The setup page on the same domain is allowed by default.
+2. Browser extension origins are allowed by default.
+3. `CC_ALLOWED_ORIGINS` is only needed for explicit third-party web origins.
+
+Key runtime variables:
+
+```bash
+CC_SETUP_UI_ENABLE=true
+CC_SETUP_DISABLE_RESTART=false
+CC_RUNTIME_CONFIG_FILE=/lzcapp/var/cookiecloud/runtime-config.json
+CC_DATA_DIR=/lzcapp/var/cookiecloud/data
+```
+
+Notes:
+
+1. Runtime config is persisted to `CC_RUNTIME_CONFIG_FILE` in JSON format.
+2. After apply, the service exits gracefully with a short delay (~800ms) for platform-managed restart.
+3. Set `CC_SETUP_DISABLE_RESTART=true` if you prefer manual restart.
+
+### LazyCat Packaging Files
+
+The repository root contains:
+
+1. `lzc-manifest.yml`
+2. `lzc-build.yml`
+
+You can build/install directly:
+
+```bash
+lzc-cli project build
+lzc-cli app install ./.pkgout/*.lpk --apk n
+```
+
+Default manifest strategy:
+
+1. Route ` /=http://app:8088`
+2. Public paths only for extension APIs: `/api/update`, `/api/get/`, `/api/health`
+3. `/setup` is not in `public_path`, so access is controlled by LazyCat login
+
 ## Debugging and Log Viewing
 
 Enter the browser plugin list, click on service worker, a panel will pop up where you can view the operation log
@@ -128,16 +235,40 @@ Upload:
 
 - method: POST
 - url: /update
+- headers (required)
+  - `X-CC-Key-Id`
+  - `X-CC-Timestamp`
+  - `X-CC-Nonce`
+  - `X-CC-Signature`
 - parameters
   - uuid
   - encrypted: the string encrypted locally
+  - crypto_type: `aes-256-gcm-v1` / `legacy` / `aes-128-cbc-fixed`
 
 Download:
 
 - method: POST/GET
 - url: /get/:uuid
+- headers (required)
+  - `X-CC-Key-Id`
+  - `X-CC-Timestamp`
+  - `X-CC-Nonce`
+  - `X-CC-Signature`
 - parameters:
    - password: optional, if not provided returns the encrypted string, if provided attempts to decrypt and send the content;
+
+Signature payload format:
+
+```text
+METHOD
+PATH
+UUID
+TIMESTAMP
+NONCE
+SHA256(BODY)
+```
+
+Algorithm: `HMAC-SHA256`
 
 
 ## Cookie Encryption and Decryption Algorithm
@@ -146,8 +277,15 @@ Download:
 
 const data = JSON.stringify(cookies);
 
-1. md5(uuid+password) take the first 16 characters as the key
-2. AES.encrypt(data, the_key)
+Default (recommended):
+
+1. PBKDF2-SHA256 on `uuid-password` with random salt
+2. AES-256-GCM encrypt + auth tag (`aes-256-gcm-v1`)
+
+Legacy compatibility:
+
+1. `legacy` (CryptoJS dynamic IV)
+2. `aes-128-cbc-fixed` (fixed IV, only for compatibility)
 
 ### Decryption
 
@@ -488,5 +626,3 @@ const main = async (env: Record<string, string>) => {
 ```
 
 Translated by GPT4
-
-

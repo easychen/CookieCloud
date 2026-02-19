@@ -7,13 +7,13 @@ import { load_data, save_data } from './function';
 import browser from 'webextension-polyfill';
 
 function IndexPopup() {
-  let init: Object={"endpoint":"http://127.0.0.1:8088","password":"","interval":10,"domains":"","uuid":String(short_uid.generate()),"type":"up","keep_live":"","with_storage":1,"blacklist":"google.com", "headers": "","expire_minutes":60*24*365};
+  let init: Object={"endpoint":"http://127.0.0.1:8088","password":"","auth_key_id":"default","auth_secret":"","interval":10,"domains":"","uuid":String(short_uid.generate()),"type":"up","keep_live":"","with_storage":1,"blacklist":"google.com", "headers": "","expire_minutes":60*24*365,"crypto_type":"aes-256-gcm-v1"};
   const [data, setData] = useState(init);
   
   async function test(action=browser.i18n.getMessage('test'))
   {
     console.log("request,begin");
-    if( !data['endpoint'] || !data['password'] || !data['uuid'] || !data['type'] )
+    if( !data['endpoint'] || !data['password'] || !data['uuid'] || !data['type'] || !data['auth_key_id'] || !data['auth_secret'] )
     {
       alert(browser.i18n.getMessage("fullMessagePlease"));
       return;
@@ -40,7 +40,7 @@ function IndexPopup() {
 
   async function save()
   {
-    if( !data['endpoint'] || !data['password'] || !data['uuid'] || !data['type'] )
+    if( !data['endpoint'] || !data['password'] || !data['uuid'] || !data['type'] || !data['auth_key_id'] || !data['auth_secret'] )
     {
       // alert('请填写完整的信息');
       alert(browser.i18n.getMessage("fullMessagePlease"));
@@ -57,7 +57,7 @@ function IndexPopup() {
     }
   }
 
-  function onChange(name:string, e:(React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>))
+  function onChange(name:string, e:(React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>))
   {
     // console.log( "e" , name , e.target.value );
     setData({...data,[name]:e.target.value??''});
@@ -71,6 +71,20 @@ function IndexPopup() {
   function password_gen()
   {
     setData({...data,'password':String(short_uid.generate())});
+  }
+
+  async function openConfigInTab()
+  {
+    try
+    {
+      await browser.tabs.create({
+        url: browser.runtime.getURL("popup.html")
+      });
+    }catch(error)
+    {
+      console.error("open config in tab failed", error);
+      alert(browser.i18n.getMessage("openInTabFailed") || "打开失败，请重试");
+    }
   }
 
   useEffect(() => {
@@ -126,6 +140,23 @@ function IndexPopup() {
           <button className="p-2 rounded my-2 ml-2" onClick={()=>password_gen()}>{browser.i18n.getMessage('generate')}</button>
           </div>
         </div>
+        <div className="">{browser.i18n.getMessage('authKeyId') || 'Auth Key ID'}</div>
+        <input type="text" className="border-1  my-2 p-2 rounded w-full" placeholder={browser.i18n.getMessage('authKeyIdPlaceholder') || '用于服务端定位签名密钥'} value={data['auth_key_id']} onChange={e=>onChange('auth_key_id',e)} />
+        <div className="">{browser.i18n.getMessage('authSecret') || 'Auth Secret'}</div>
+        <input type="password" className="border-1  my-2 p-2 rounded w-full" placeholder={browser.i18n.getMessage('authSecretPlaceholder') || '用于生成请求签名，需与服务端一致'} value={data['auth_secret']} onChange={e=>onChange('auth_secret',e)} />
+        <div className="">{browser.i18n.getMessage('cryptoAlgorithm') || '加密算法'}</div>
+        <select className="border-1 my-2 p-2 rounded w-full" value={data['crypto_type']} onChange={e=>onChange('crypto_type',e)}>
+          <option value="aes-256-gcm-v1">{browser.i18n.getMessage('cryptoAesGcm') || 'AES-256-GCM (PBKDF2)'}</option>
+          <option value="legacy">{browser.i18n.getMessage('cryptoLegacy') || 'CryptoJS(动态IV)'}</option>
+          <option value="aes-128-cbc-fixed">{browser.i18n.getMessage('cryptoAesCbcFixed') || 'AES-128-CBC(固定IV)'}</option>
+        </select>
+        <div className="text-sm text-gray-500">
+          {data['crypto_type'] == 'aes-256-gcm-v1'
+            ? (browser.i18n.getMessage('cryptoAesGcmDesc') || '推荐：AES-256-GCM + PBKDF2，包含认证标签，安全性更高')
+            : (data['crypto_type'] == 'legacy'
+              ? (browser.i18n.getMessage('cryptoLegacyDesc') || '使用CryptoJS加密算法，会动态生成IV')
+              : (browser.i18n.getMessage('cryptoAesCbcFixedDesc') || '使用标准 AES-128-CBC 算法，IV固定为 0x0'))}
+        </div>
         <div className="">{browser.i18n.getMessage('cookieExpireMinutes')}</div>
         <input type="number" className="border-1  my-2 p-2 rounded w-full" placeholder={browser.i18n.getMessage('cookieExpireMinutesPlaceholder')} value={data['expire_minutes']||0} onChange={e=>onChange('expire_minutes',e)} />
 
@@ -165,7 +196,8 @@ function IndexPopup() {
         <div className="bg-blue-400 text-white p-2 my-2 rounded">{browser.i18n.getMessage('keepLiveStop')}</div>
         </>}
         <div className="flex flex-row justify-between mt-2">
-          <div className="left text-gray-400">
+          <div className="left text-gray-400 flex flex-row items-center flex-wrap">
+            <button className="p-2 rounded hover:bg-gray-100 mr-2" title={browser.i18n.getMessage("openInTabHint") || "在浏览器标签页打开配置页，避免弹窗失焦关闭"} onClick={()=>openConfigInTab()}>{browser.i18n.getMessage("openInTab") || "在新标签页打开"}</button>
             {data['type'] && data['type'] != 'pause' && <><button className="p-2 rounded hover:bg-blue-100 mr-2" onClick={()=>test(browser.i18n.getMessage('syncManual'))}>{browser.i18n.getMessage('syncManual')}</button><button className="hover:bg-blue-100 p-2 rounded" onClick={()=>test(browser.i18n.getMessage('test'))}>{browser.i18n.getMessage('test')}</button></>}
 
           </div>

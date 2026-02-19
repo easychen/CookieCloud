@@ -88,17 +88,26 @@ docker run -e API_ROOT=/cookie -p=8088:8088 easychen/cookiecloud:latest
 
 ##### 用 Docker-compose 启动
 
+推荐统一脚本入口（支持多 worktree 并行 + 可复现）：
+
+```bash
+bash scripts/run_local.sh --instance a --port 18088
+# UI: http://127.0.0.1:18088/
+# Marker: var/logs/a-docker.env
+
+bash scripts/stop_local.sh --instance a
+```
+
 ```yml
 version: '3'
 services:
   cookiecloud:
     image: easychen/cookiecloud:latest
-    container_name: cookiecloud-app
     restart: always
     volumes:
       - ./data:/data/api/data
     ports:
-      - 8088:8088
+      - "${COOKIECLOUD_PORT:-8088}:8088"
 ```
 
 [docker-compose.yml由aitixiong提供](https://github.com/easychen/CookieCloud/issues/42)
@@ -112,6 +121,104 @@ cd api && yarn install && node app.js
 ```
 默认端口 8088 ，同样也支持 API_ROOT 环境变量
 
+### 公网暴露安全说明（必读）
+
+只要你的 CookieCloud 地址可以被互联网直接访问（包括平台分配的公网域名），就应视为公网暴露。
+
+当前版本对 `/update` 和 `/get/:uuid` 默认强制 HMAC 签名鉴权。
+
+建议至少配置以下环境变量：
+
+```bash
+# 格式：key_id:secret[,key_id2:secret2]
+CC_HMAC_KEYS=default:替换为高强度随机密钥
+
+# 签名时间窗（秒），默认 300
+CC_HMAC_TTL_SEC=300
+
+# 请求体大小限制（MB），默认 10
+CC_MAX_BODY_MB=10
+
+# CORS 白名单，逗号分隔（用于额外放行第三方网页来源）
+# 同域 setup 请求和浏览器扩展 Origin 默认放行。
+# 仅在需要放行第三方网页来源时再填写。
+CC_ALLOWED_ORIGINS=
+
+# 迁移期保持 true，迁移完成后建议改为 false
+CC_ENABLE_LEGACY_READ=true
+```
+
+Docker 配置示例：
+
+```bash
+docker run \
+  -p=8088:8088 \
+  -e CC_HMAC_KEYS='default:替换为高强度随机密钥' \
+  -e CC_HMAC_TTL_SEC=300 \
+  -e CC_MAX_BODY_MB=10 \
+  -e CC_ENABLE_LEGACY_READ=true \
+  easychen/cookiecloud:latest
+```
+
+### 懒猫微服内置配置页（/setup）
+
+本仓库新增了后端内置配置页面，适合懒猫公网部署场景。
+
+特点：
+
+1. 页面地址固定为 `/setup`，默认开启（`CC_SETUP_UI_ENABLE=true`）。
+2. 服务端会校验 `X-HC-User-ID` 请求头，未登录请求返回 `401`。
+3. 支持“校验并预览”、“保存并重启”、“导出脱敏快照”。
+4. 预览与 API 返回内容均脱敏，不回传明文 `Auth Secret`。
+
+最小流程：
+
+1. 访问 `https://你的域名/setup`。
+2. 填写 `API Root / HMAC Keys / TTL / Max Body / Allowed Origins`。
+3. 点击“校验并预览”，确认插件模板和验证命令。
+4. 点击“保存并重启”，等待服务重启后再执行联调。
+
+`Allowed Origins` 填写建议：
+
+1. 与当前服务同域的 setup 页面请求默认允许，无需额外填写。
+2. 浏览器扩展来源默认允许，无需额外填写。
+3. `CC_ALLOWED_ORIGINS` 仅用于显式放行第三方网页来源。
+
+关键运行时变量：
+
+```bash
+CC_SETUP_UI_ENABLE=true
+CC_SETUP_DISABLE_RESTART=false
+CC_RUNTIME_CONFIG_FILE=/lzcapp/var/cookiecloud/runtime-config.json
+CC_DATA_DIR=/lzcapp/var/cookiecloud/data
+```
+
+说明：
+
+1. 运行时配置写入 `CC_RUNTIME_CONFIG_FILE`，格式为 JSON。
+2. 应用配置后，服务默认会延迟约 800ms 触发优雅退出，由平台拉起新进程。
+3. 如需人工重启，可将 `CC_SETUP_DISABLE_RESTART=true`。
+
+### 懒猫打包文件
+
+仓库根目录包含：
+
+1. `lzc-manifest.yml`
+2. `lzc-build.yml`
+
+可直接执行：
+
+```bash
+lzc-cli project build
+lzc-cli app install ./.pkgout/*.lpk --apk n
+```
+
+Manifest 默认策略：
+
+1. 对外路由 `/=http://app:8088`
+2. 仅公开插件必要路径：`/api/update`、`/api/get/`、`/api/health`
+3. `/setup` 不在 `public_path`，由懒猫登录态控制访问
+
 ## 调试和日志查看
 
 进入浏览器插件列表，点击 service worker，会弹出一个面板，可查看运行日志
@@ -124,16 +231,40 @@ cd api && yarn install && node app.js
 
 - method: POST
 - url: /update
+- headers（必填）
+  - `X-CC-Key-Id`
+  - `X-CC-Timestamp`
+  - `X-CC-Nonce`
+  - `X-CC-Signature`
 - 参数
   - uuid
   - encrypted: 本地加密后的字符串
+  - crypto_type: `aes-256-gcm-v1` / `legacy` / `aes-128-cbc-fixed`
 
 下载：
 
 - method: POST/GET
 - url: /get/:uuid
+- headers（必填）
+  - `X-CC-Key-Id`
+  - `X-CC-Timestamp`
+  - `X-CC-Nonce`
+  - `X-CC-Signature`
 - 参数：
    - password:可选，不提供返回加密后的字符串，提供则发送尝试解密后的内容；
+
+签名串格式：
+
+```text
+METHOD
+PATH
+UUID
+TIMESTAMP
+NONCE
+SHA256(BODY)
+```
+
+算法：`HMAC-SHA256`
 
 
 ## Cookie加解密算法
@@ -142,8 +273,15 @@ cd api && yarn install && node app.js
 
 const data = JSON.stringify(cookies);
 
-1. md5(uuid+password) 取前16位作为key
-2. AES.encrypt(data, the_key)
+默认推荐：
+
+1. 对 `uuid-password` 使用 PBKDF2-SHA256（随机 salt）
+2. 使用 AES-256-GCM 加密并附带认证标签（`aes-256-gcm-v1`）
+
+兼容旧格式：
+
+1. `legacy`（CryptoJS 动态 IV）
+2. `aes-128-cbc-fixed`（固定 IV，仅用于兼容）
 
 ### 解密
 
@@ -482,5 +620,3 @@ const main = async (env: Record<string, string>) => {
     console.log('decrypted:', new TextDecoder().decode(d))
 }
 ```
-
-
