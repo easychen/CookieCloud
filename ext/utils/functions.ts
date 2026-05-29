@@ -5,6 +5,77 @@ interface CookieData {
   [domain: string]: any[];
 }
 
+export type DomainFilterType = 'sync' | 'all' | 'blacklist';
+
+export interface DomainStatus {
+  isInBlacklist: boolean;
+  isInSyncList: boolean;
+}
+
+export interface ConfigData {
+  endpoint: string;
+  password: string;
+  interval: number;
+  domains: string;
+  uuid: string;
+  type: string;
+  keep_live: string;
+  with_storage: number;
+  blacklist: string;
+  headers: string;
+  expire_minutes: number;
+  crypto_type: string;
+}
+
+export interface ManagedCookie {
+  name: string;
+  value: string;
+  domain: string;
+  path: string;
+  secure: boolean;
+  httpOnly: boolean;
+  sameSite?: string;
+  expirationDate?: number;
+  storeId?: string;
+  session?: boolean;
+  partitionKey?: any;
+}
+
+export type CookieIdentityFields = Pick<ManagedCookie, 'name' | 'domain' | 'path' | 'storeId' | 'partitionKey'>;
+
+export interface SyncLogEntry {
+  id: string;
+  timestamp: number;
+  direction: 'upload' | 'download';
+  success: boolean;
+  trigger: string;
+  note: string;
+  domainCount: number;
+  cookieCount: number;
+}
+
+export interface RemoteCookieSnapshot {
+  cookie_data: CookieData;
+  local_storage_data: any;
+  update_time?: string;
+  crypto_type?: string;
+}
+
+export const DEFAULT_CONFIG: ConfigData = {
+  endpoint: 'https://ccc.ft07.com',
+  password: '',
+  interval: 10,
+  domains: '',
+  uuid: '',
+  type: 'up',
+  keep_live: '',
+  with_storage: 1,
+  blacklist: 'google.com',
+  headers: '',
+  expire_minutes: 60 * 24 * 365,
+  crypto_type: 'legacy'
+};
+
 interface LocalStorageData {
   [key: string]: any;
 }
@@ -20,6 +91,7 @@ interface UploadPayload {
   no_cache?: number;
   expire_minutes?: number;
   crypto_type?: string;
+  trigger?: string;
 }
 
 interface DownloadPayload {
@@ -28,10 +100,98 @@ interface DownloadPayload {
   endpoint: string;
   expire_minutes?: number;
   crypto_type?: string;
+  trigger?: string;
 }
+
+const SYNC_LOG_STORAGE_KEY = 'COOKIE_SYNC_LOGS';
 
 function is_firefox(): boolean {
   return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+}
+
+export function normalize_config(data: Partial<ConfigData> | null | undefined): ConfigData {
+  const merged = { ...DEFAULT_CONFIG, ...(data || {}) };
+  const asString = <K extends keyof ConfigData>(key: K): ConfigData[K] => {
+    const value = merged[key];
+    return (typeof value === 'string' ? value : DEFAULT_CONFIG[key]) as ConfigData[K];
+  };
+
+  return {
+    ...merged,
+    interval: Number(merged.interval) || DEFAULT_CONFIG.interval,
+    with_storage: Number(merged.with_storage) || 0,
+    expire_minutes: Number(merged.expire_minutes) || 0,
+    uuid: asString('uuid'),
+    password: asString('password'),
+    endpoint: asString('endpoint'),
+    type: asString('type'),
+    domains: asString('domains'),
+    keep_live: asString('keep_live'),
+    blacklist: asString('blacklist'),
+    headers: asString('headers'),
+    crypto_type: asString('crypto_type')
+  };
+}
+
+export function split_lines(value: string = ''): string[] {
+  return value
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean);
+}
+
+export function normalize_domain(domain: string): string {
+  return domain.replace(/^\./, '').trim().toLowerCase();
+}
+
+export function get_domain_status(domain: string, config: Pick<ConfigData, 'domains' | 'blacklist'>): DomainStatus {
+  const normalizedDomain = normalize_domain(domain);
+  const syncDomains = split_lines(config.domains);
+  const blacklistDomains = split_lines(config.blacklist);
+
+  return {
+    isInBlacklist: blacklistDomains.some(item => normalizedDomain.includes(normalize_domain(item))),
+    isInSyncList: syncDomains.some(item => normalizedDomain.includes(normalize_domain(item))),
+  };
+}
+
+export function get_default_domain_filter(config: Pick<ConfigData, 'domains'>): DomainFilterType {
+  return split_lines(config.domains).length > 0 ? 'sync' : 'all';
+}
+
+export function filter_domains_by_type(cookieData: CookieData, filterType: DomainFilterType, config: Pick<ConfigData, 'domains' | 'blacklist'>): CookieData {
+  if (filterType === 'all') {
+    return cookieData;
+  }
+
+  const filtered: CookieData = {};
+  for (const domain of Object.keys(cookieData)) {
+    const status = get_domain_status(domain, config);
+    if (filterType === 'sync' && status.isInSyncList) {
+      filtered[domain] = cookieData[domain];
+    }
+    if (filterType === 'blacklist' && status.isInBlacklist) {
+      filtered[domain] = cookieData[domain];
+    }
+  }
+
+  return filtered;
+}
+
+export function cookie_list_to_header_string(cookies: ManagedCookie[]): string {
+  return cookies
+    .map(cookie => `${cookie.name}=${cookie.value}`)
+    .join(';');
+}
+
+export function get_cookie_identity_key(cookie: CookieIdentityFields): string {
+  return [
+    normalize_domain(cookie.domain || ''),
+    cookie.path || '',
+    cookie.name || '',
+    cookie.storeId || '',
+    cookie.partitionKey ? JSON.stringify(cookie.partitionKey) : '',
+  ].join('|');
 }
 
 
@@ -136,11 +296,20 @@ export async function save_data(key: string, data: any): Promise<any> {
 
 export async function upload_cookie(payload: UploadPayload): Promise<any> {
   const { uuid, password } = payload;
+  const trigger = payload.trigger || (payload.no_cache ? 'manual' : 'scheduled');
   // console.log( payload );
   // none of the fields can be empty
   if (!password || !uuid) {
     alert("Invalid parameters");
     showBadge("err");
+    await append_sync_log({
+      direction: 'upload',
+      success: false,
+      trigger,
+      note: 'Invalid parameters',
+      domainCount: 0,
+      cookieCount: 0,
+    });
     return false;
   }
   const domains = payload.domains?.trim().length ? payload.domains.trim().split("\n") : [];
@@ -148,6 +317,8 @@ export async function upload_cookie(payload: UploadPayload): Promise<any> {
   const blacklist = payload.blacklist?.trim().length ? payload.blacklist.trim().split("\n") : [];
 
   const cookies = await get_cookie_by_domains(domains, blacklist);
+  const domainCount = Object.keys(cookies).length;
+  const cookieCount = Object.values(cookies).reduce((sum, items) => sum + items.length, 0);
   const with_storage = payload['with_storage'] || 0;
   const local_storages = with_storage ? await get_local_storage_by_domains(domains) : {};
 
@@ -169,6 +340,14 @@ export async function upload_cookie(payload: UploadPayload): Promise<any> {
   } catch (error) {
     console.log("error", error);
     showBadge("err");
+    await append_sync_log({
+      direction: 'upload',
+      success: false,
+      trigger,
+      note: 'Header parsing error',
+      domainCount,
+      cookieCount,
+    });
     return false;
   }
   // Encrypt cookie with AES
@@ -184,6 +363,14 @@ export async function upload_cookie(payload: UploadPayload): Promise<any> {
   // If same content has been uploaded within 24 hours, don't upload again
   if ((!payload.no_cache || parseInt(payload.no_cache.toString()) < 1) && last_uploaded_info && last_uploaded_info.sha256 === sha256 && new Date().getTime() - last_uploaded_info.timestamp < 1000 * 60 * 60 * 24) {
     console.log("same data in 24 hours, skip1");
+    await append_sync_log({
+      direction: 'upload',
+      success: true,
+      trigger,
+      note: 'Local Cookie data unchanged, not uploading',
+      domainCount,
+      cookieCount,
+    });
     return { action: 'done', note: 'Local Cookie data unchanged, not uploading' };
   }
 
@@ -205,89 +392,126 @@ export async function upload_cookie(payload: UploadPayload): Promise<any> {
     if (result && result.action === 'done')
       await save_data('LAST_UPLOADED_COOKIE', { "timestamp": new Date().getTime(), "sha256": sha256 });
 
+    await append_sync_log({
+      direction: 'upload',
+      success: result?.action === 'done',
+      trigger,
+      note: result?.note || result?.message || result?.action || 'upload completed',
+      domainCount,
+      cookieCount,
+    });
+
     return result;
   } catch (error) {
     console.log("error", error);
     showBadge("err");
+    await append_sync_log({
+      direction: 'upload',
+      success: false,
+      trigger,
+      note: error instanceof Error ? error.message : 'upload failed',
+      domainCount,
+      cookieCount,
+    });
     return false;
   }
 }
 
-export async function download_cookie(payload: DownloadPayload): Promise<any> {
-  const { uuid, password, expire_minutes, crypto_type } = payload;
+export async function fetch_remote_cookie_snapshot(payload: DownloadPayload): Promise<RemoteCookieSnapshot> {
+  const { uuid, password, crypto_type } = payload;
   let endpoint = payload.endpoint.trim().replace(/\/+$/, '') + '/get/' + uuid;
-  // 如果指定了加密算法，添加查询参数
   if (crypto_type) {
     endpoint += `?crypto_type=${crypto_type}`;
   }
+  const response = await fetch(endpoint, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  const result = await response.json();
+
+  if (!result?.encrypted) {
+    throw new Error('remote snapshot unavailable');
+  }
+
+  const useCryptoType = crypto_type || result.crypto_type || 'legacy';
+  const snapshot = cookie_decrypt(uuid, result.encrypted, password, useCryptoType);
+
+  return {
+    ...snapshot,
+    crypto_type: useCryptoType,
+  };
+}
+
+export async function download_cookie(payload: DownloadPayload): Promise<any> {
+  const { expire_minutes } = payload;
+  const trigger = payload.trigger || 'scheduled';
   try {
     showBadge("↓", "blue");
-    const response = await fetch(endpoint, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    const result = await response.json();
-    if (result && result.encrypted) {
-      const useCryptoType = crypto_type || result.crypto_type || 'legacy';
-      const { cookie_data, local_storage_data } = cookie_decrypt(uuid, result.encrypted, password, useCryptoType);
-      let action = 'done';
-      if (cookie_data) {
-        for (let domain in cookie_data) {
-          // console.log( "domain" , cookies[domain] );
-          if (Array.isArray(cookie_data[domain])) {
-            for (let cookie of cookie_data[domain]) {
-              let new_cookie: any = {};
-              ['name', 'value', 'domain', 'path', 'secure', 'httpOnly', 'sameSite'].forEach(key => {
-                if (key == 'sameSite' && cookie[key].toLowerCase() == 'unspecified' && is_firefox()) {
-                  // In Firefox, unspecified will cause cookie setting to fail
-                  // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/cookies/SameSiteStatus
-                  new_cookie['sameSite'] = 'no_restriction';
-                } else {
-                  new_cookie[key] = cookie[key];
-                }
-              });
-              if (expire_minutes) {
-                // Current timestamp (seconds)
-                const now = parseInt((new Date().getTime() / 1000).toString());
-                console.log("now", now);
-                new_cookie.expirationDate = now + parseInt(expire_minutes.toString()) * 60;
-                console.log("new_cookie.expirationDate", new_cookie.expirationDate);
+    const { cookie_data, local_storage_data } = await fetch_remote_cookie_snapshot(payload);
+    let action = 'done';
+    const domainCount = Object.keys(cookie_data || {}).length;
+    const cookieCount = Object.values(cookie_data || {}).reduce((sum, items) => sum + items.length, 0);
 
+    if (cookie_data) {
+      for (let domain in cookie_data) {
+        if (Array.isArray(cookie_data[domain])) {
+          for (let cookie of cookie_data[domain]) {
+            let new_cookie: any = {};
+            ['name', 'value', 'domain', 'path', 'secure', 'httpOnly', 'sameSite'].forEach(key => {
+              if (key == 'sameSite' && cookie[key].toLowerCase() == 'unspecified' && is_firefox()) {
+                new_cookie['sameSite'] = 'no_restriction';
+              } else {
+                new_cookie[key] = cookie[key];
               }
-              new_cookie.url = buildUrl(cookie.secure, cookie.domain, cookie.path);
-              console.log("new cookie", new_cookie);
-              try {
-                const set_ret = await browser.cookies.set(new_cookie);
-                console.log("set cookie", set_ret);
-              } catch (error) {
-                showBadge("err");
-                console.log("set cookie error", error);
-              }
-
-
+            });
+            if (expire_minutes) {
+              const now = parseInt((new Date().getTime() / 1000).toString());
+              new_cookie.expirationDate = now + parseInt(expire_minutes.toString()) * 60;
+            }
+            new_cookie.url = buildUrl(cookie.secure, cookie.domain, cookie.path);
+            try {
+              await browser.cookies.set(new_cookie);
+            } catch (error) {
+              showBadge("err");
+              console.log("set cookie error", error);
             }
           }
         }
-      } else {
-        action = 'false';
       }
-
-      console.log("local_storage_data", local_storage_data);
-      if (local_storage_data) {
-        for (let domain in local_storage_data) {
-          const key = 'LS-' + domain;
-          await save_data(key, local_storage_data[domain]);
-          console.log("save local storage", key, local_storage_data[domain]);
-        }
-      }
-
-      return { action };
+    } else {
+      action = 'false';
     }
+
+    if (local_storage_data) {
+      for (let domain in local_storage_data) {
+        const key = 'LS-' + domain;
+        await save_data(key, local_storage_data[domain]);
+      }
+    }
+
+    await append_sync_log({
+      direction: 'download',
+      success: action === 'done',
+      trigger,
+      note: action === 'done' ? 'download completed' : 'download failed',
+      domainCount,
+      cookieCount,
+    });
+
+    return { action };
   } catch (error) {
     console.log("error", error);
     showBadge("err");
+    await append_sync_log({
+      direction: 'download',
+      success: false,
+      trigger,
+      note: error instanceof Error ? error.message : 'download failed',
+      domainCount: 0,
+      cookieCount: 0,
+    });
     return false;
   }
 }
@@ -354,7 +578,7 @@ export async function get_local_storage_by_domains(domains: string[] = []): Prom
   return ret_storage;
 }
 
-async function get_cookie_by_domains(domains: string[] = [], blacklist: string[] = []): Promise<CookieData> {
+export async function get_cookie_by_domains(domains: string[] = [], blacklist: string[] = []): Promise<CookieData> {
   let ret_cookies: CookieData = {};
   // Get cookies
   if (browser.cookies) {
@@ -401,6 +625,160 @@ async function get_cookie_by_domains(domains: string[] = [], blacklist: string[]
   return ret_cookies;
 }
 
+export async function list_cookies_by_domain(keyword: string = ''): Promise<CookieData> {
+  const allCookies = await get_cookie_by_domains();
+  const search = keyword.trim().toLowerCase();
+
+  if (!search) {
+    return sort_cookie_domains(allCookies);
+  }
+
+  const filtered: CookieData = {};
+  for (const domain of Object.keys(allCookies)) {
+    if (normalize_domain(domain).includes(search)) {
+      filtered[domain] = allCookies[domain];
+    }
+  }
+
+  return sort_cookie_domains(filtered);
+}
+
+function sort_cookie_domains(cookieData: CookieData): CookieData {
+  return Object.keys(cookieData)
+    .sort((left, right) => normalize_domain(left).localeCompare(normalize_domain(right)))
+    .reduce((result, domain) => {
+      result[domain] = cookieData[domain].slice().sort((left, right) => {
+        const leftName = `${left.name || ''}${left.path || ''}`;
+        const rightName = `${right.name || ''}${right.path || ''}`;
+        return leftName.localeCompare(rightName);
+      });
+      return result;
+    }, {} as CookieData);
+}
+
+export async function upsert_cookie(cookie: ManagedCookie): Promise<any> {
+  const payload: any = {
+    url: buildUrl(cookie.secure, cookie.domain, cookie.path),
+    name: cookie.name,
+    value: cookie.value,
+    domain: cookie.domain,
+    path: cookie.path,
+    secure: cookie.secure,
+    httpOnly: cookie.httpOnly,
+  };
+
+  if (cookie.sameSite) {
+    payload.sameSite = cookie.sameSite;
+  }
+  if (cookie.expirationDate && !cookie.session) {
+    payload.expirationDate = cookie.expirationDate;
+  }
+  if (cookie.storeId) {
+    payload.storeId = cookie.storeId;
+  }
+  if (cookie.partitionKey) {
+    payload.partitionKey = cookie.partitionKey;
+  }
+
+  return browser.cookies.set(payload);
+}
+
+export async function delete_cookie(cookie: ManagedCookie): Promise<any> {
+  const payload: any = {
+    url: buildUrl(cookie.secure, cookie.domain, cookie.path),
+    name: cookie.name,
+  };
+
+  if (cookie.storeId) {
+    payload.storeId = cookie.storeId;
+  }
+  if (cookie.partitionKey) {
+    payload.partitionKey = cookie.partitionKey;
+  }
+
+  return browser.cookies.remove(payload);
+}
+
+export async function add_domain_to_blacklist(domain: string): Promise<ConfigData> {
+  return update_domains_config('blacklist', [domain], 'add');
+}
+
+export async function append_sync_log(input: Omit<SyncLogEntry, 'id' | 'timestamp'>): Promise<void> {
+  const currentLogs = await list_sync_logs();
+  const nextLogs: SyncLogEntry[] = [
+    {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      timestamp: Date.now(),
+      ...input,
+    },
+    ...currentLogs,
+  ].slice(0, 100);
+
+  await save_data(SYNC_LOG_STORAGE_KEY, nextLogs);
+}
+
+export async function list_sync_logs(): Promise<SyncLogEntry[]> {
+  const logs = await load_data(SYNC_LOG_STORAGE_KEY);
+  return Array.isArray(logs) ? logs : [];
+}
+
+export async function remove_domain_from_blacklist(domain: string): Promise<ConfigData> {
+  return update_domains_config('blacklist', [domain], 'remove');
+}
+
+export async function add_domain_to_sync_list(domain: string): Promise<ConfigData> {
+  return update_domains_config('domains', [domain], 'add');
+}
+
+export async function remove_domain_from_sync_list(domain: string): Promise<ConfigData> {
+  return update_domains_config('domains', [domain], 'remove');
+}
+
+export async function add_domains_to_blacklist(domains: string[]): Promise<ConfigData> {
+  return update_domains_config('blacklist', domains, 'add');
+}
+
+export async function remove_domains_from_blacklist(domains: string[]): Promise<ConfigData> {
+  return update_domains_config('blacklist', domains, 'remove');
+}
+
+export async function add_domains_to_sync_list(domains: string[]): Promise<ConfigData> {
+  return update_domains_config('domains', domains, 'add');
+}
+
+export async function remove_domains_from_sync_list(domains: string[]): Promise<ConfigData> {
+  return update_domains_config('domains', domains, 'remove');
+}
+
+async function update_domains_config(field: 'domains' | 'blacklist', domains: string[], action: 'add' | 'remove'): Promise<ConfigData> {
+  const current = normalize_config(await load_data('COOKIE_SYNC_SETTING'));
+  const normalizedTargets = Array.from(new Set(domains.map(normalize_domain).filter(Boolean)));
+  const currentItems = split_lines(current[field]);
+  let nextItems = currentItems;
+
+  if (action === 'add') {
+    const itemSet = new Set(currentItems.map(normalize_domain));
+    nextItems = currentItems.slice();
+    for (const target of normalizedTargets) {
+      if (!itemSet.has(target)) {
+        nextItems.push(target);
+        itemSet.add(target);
+      }
+    }
+  } else {
+    const targetSet = new Set(normalizedTargets);
+    nextItems = currentItems.filter(item => !targetSet.has(normalize_domain(item)));
+  }
+
+  const nextConfig = {
+    ...current,
+    [field]: nextItems.join('\n')
+  };
+
+  await save_data('COOKIE_SYNC_SETTING', nextConfig);
+  return nextConfig;
+}
+
 function buildUrl(secure: boolean, domain: string, path: string): string {
   if (domain.startsWith('.')) {
     domain = domain.substr(1);
@@ -415,9 +793,14 @@ export function sleep(ms: number): Promise<void> {
 }
 
 export function showBadge(text: string, color: string = "red", delay: number = 5000): void {
-  (browser.action ?? browser.browserAction).setBadgeText({ text: text });
-  (browser.action ?? browser.browserAction).setBadgeBackgroundColor({ color: color });
-    setTimeout(() => {
-      (browser.action ?? browser.browserAction).setBadgeText({ text: '' });
-    }, delay);
+  const browserAction = browser.action ?? browser.browserAction;
+  if (!browserAction?.setBadgeText || !browserAction?.setBadgeBackgroundColor) {
+    return;
+  }
+
+  browserAction.setBadgeText({ text });
+  browserAction.setBadgeBackgroundColor({ color });
+  setTimeout(() => {
+    browserAction.setBadgeText({ text: '' });
+  }, delay);
 }

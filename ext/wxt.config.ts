@@ -8,6 +8,7 @@ export default defineConfig({
     name: '__MSG_appTitle__',
     description: '__MSG_appDesc__',
     default_locale: 'zh_CN',
+    action: {},
     permissions: [
       'cookies',
       'tabs', 

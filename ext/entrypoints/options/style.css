@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-slate-100 text-slate-900 antialiased;
+  }
+
+  body {
+    @apply min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(14,165,233,0.18),_transparent_24%),radial-gradient(circle_at_top_right,_rgba(16,185,129,0.12),_transparent_22%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_100%)];
+    font-family: 'ui-sans-serif', 'SF Pro Display', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    @apply outline-none;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-medium transition duration-200 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-primary {
+    @apply bg-sky-600 text-white shadow-sm shadow-sky-900/10 hover:bg-sky-700;
+  }
+
+  .btn-secondary {
+    @apply bg-slate-100 text-slate-700 hover:bg-slate-200;
+  }
+
+  .btn-success {
+    @apply bg-emerald-600 text-white shadow-sm shadow-emerald-900/10 hover:bg-emerald-700;
+  }
+
+  .btn-danger {
+    @apply bg-rose-600 text-white shadow-sm shadow-rose-900/10 hover:bg-rose-700;
+  }
+
+  .form-label {
+    @apply mb-1.5 block text-sm font-medium text-slate-700;
+  }
+
+  .form-input {
+    @apply w-full rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm transition duration-200 placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-100;
+  }
+
+  .form-textarea {
+    @apply form-input min-h-[120px] resize-y leading-6;
+    font-family: inherit;
+  }
+
+  .menu-item {
+    @apply block w-full rounded-xl px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-100;
+  }
+
+  .toast-card {
+    @apply rounded-2xl px-4 py-3 text-sm text-white shadow-lg;
+  }
+
+  .panel-scroll {
+    scrollbar-gutter: stable;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(148, 163, 184, 0.15);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.45);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(71, 85, 105, 0.75);
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    @apply bg-slate-950 text-slate-100;
+  }
+
+  body {
+    @apply bg-[radial-gradient(circle_at_top_left,_rgba(14,165,233,0.2),_transparent_24%),radial-gradient(circle_at_top_right,_rgba(16,185,129,0.12),_transparent_22%),linear-gradient(180deg,_#020617_0%,_#0f172a_100%)];
+  }
+}

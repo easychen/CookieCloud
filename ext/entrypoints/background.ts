@@ -1,8 +1,37 @@
 import { upload_cookie, download_cookie, load_data, save_data, sleep } from '../utils/functions';
 import browser from 'webextension-polyfill';
 
+const EXTENSION_PAGE_PATH = 'options.html';
+
+async function openExtensionPage(): Promise<void> {
+  if (browser.runtime.openOptionsPage) {
+    try {
+      await browser.runtime.openOptionsPage();
+      return;
+    } catch (error) {
+      console.warn('openOptionsPage failed, falling back to tab:', error);
+    }
+  }
+
+  const pageUrl = browser.runtime.getURL(EXTENSION_PAGE_PATH);
+  const tabs = await browser.tabs.query({ url: pageUrl });
+  const [existsTab] = tabs;
+
+  if (existsTab?.id) {
+    await browser.tabs.update(existsTab.id, { active: true });
+    return;
+  }
+
+  await browser.tabs.create({ url: pageUrl });
+}
+
 export default defineBackground(() => {
   console.log('CookieCloud Background Script Started', { id: browser.runtime.id });
+
+  const browserAction = browser.action ?? browser.browserAction;
+  browserAction?.onClicked?.addListener(() => {
+    void openExtensionPage();
+  });
 
   browser.runtime.onInstalled.addListener(function (details) {
     if (details.reason == "install") {
