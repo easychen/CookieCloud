@@ -1,5 +1,9 @@
 import CryptoJS from 'crypto-js';
 import { gzip } from 'pako';
+import {
+  createCookieSetFallbacks,
+  normalizeCookieForSet,
+} from './cookie-normalization';
 
 interface CookieData {
   [domain: string]: any[];
@@ -29,11 +33,6 @@ interface DownloadPayload {
   expire_minutes?: number;
   crypto_type?: string;
 }
-
-function is_firefox(): boolean {
-  return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-}
-
 
 export async function browser_set(key: string, value: any): Promise<void> {
   return await browser.storage.local.set({ [key]: value });
@@ -233,37 +232,46 @@ export async function download_cookie(payload: DownloadPayload): Promise<any> {
       const useCryptoType = crypto_type || result.crypto_type || 'legacy';
       const { cookie_data, local_storage_data } = cookie_decrypt(uuid, result.encrypted, password, useCryptoType);
       let action = 'done';
+      let total = 0;
+      let succeeded = 0;
+      let failed = 0;
+      let compatibilityFallbacks = 0;
+      const failureReasons = new Map<string, number>();
       if (cookie_data) {
         for (let domain in cookie_data) {
           // console.log( "domain" , cookies[domain] );
           if (Array.isArray(cookie_data[domain])) {
             for (let cookie of cookie_data[domain]) {
-              let new_cookie: any = {};
-              ['name', 'value', 'domain', 'path', 'secure', 'httpOnly', 'sameSite'].forEach(key => {
-                if (key == 'sameSite' && cookie[key].toLowerCase() == 'unspecified' && is_firefox()) {
-                  // In Firefox, unspecified will cause cookie setting to fail
-                  // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/cookies/SameSiteStatus
-                  new_cookie['sameSite'] = 'no_restriction';
-                } else {
-                  new_cookie[key] = cookie[key];
-                }
-              });
-              if (expire_minutes) {
-                // Current timestamp (seconds)
-                const now = parseInt((new Date().getTime() / 1000).toString());
-                console.log("now", now);
-                new_cookie.expirationDate = now + parseInt(expire_minutes.toString()) * 60;
-                console.log("new_cookie.expirationDate", new_cookie.expirationDate);
-
-              }
-              new_cookie.url = buildUrl(cookie.secure, cookie.domain, cookie.path);
-              console.log("new cookie", new_cookie);
+              total += 1;
               try {
-                const set_ret = await browser.cookies.set(new_cookie);
-                console.log("set cookie", set_ret);
+                const { details, warnings } = normalizeCookieForSet(cookie, expire_minutes);
+                warnings.forEach(warning => console.warn('cookie normalization warning', warning));
+                try {
+                  const set_ret = await browser.cookies.set(details as any);
+                  console.log("set cookie", set_ret);
+                } catch (primaryError) {
+                  let lastError = primaryError;
+                  let restored = false;
+                  for (const fallback of createCookieSetFallbacks(details)) {
+                    try {
+                      const set_ret = await browser.cookies.set(fallback as any);
+                      console.warn('set cookie with compatibility fallback', set_ret);
+                      compatibilityFallbacks += 1;
+                      restored = true;
+                      break;
+                    } catch (fallbackError) {
+                      lastError = fallbackError;
+                    }
+                  }
+                  if (!restored) throw lastError;
+                }
+                succeeded += 1;
               } catch (error) {
-                showBadge("err");
-                console.log("set cookie error", error);
+                failed += 1;
+                const reason = error instanceof Error ? error.message : String(error);
+                const scopedReason = `${cookie.domain || 'unknown-domain'}: ${reason}`;
+                failureReasons.set(scopedReason, (failureReasons.get(scopedReason) || 0) + 1);
+                console.log("set cookie error", { name: cookie.name, domain: cookie.domain }, error);
               }
 
 
@@ -283,7 +291,26 @@ export async function download_cookie(payload: DownloadPayload): Promise<any> {
         }
       }
 
-      return { action };
+      if (failed === 0) {
+        showBadge("✓", "green");
+      } else if (succeeded > 0) {
+        showBadge("!", "orange");
+      } else {
+        showBadge("err");
+        action = 'false';
+      }
+
+      const reasonSummary = Array.from(failureReasons.entries())
+        .slice(0, 3)
+        .map(([reason, count]) => `${count}× ${reason}`)
+        .join('; ');
+      const note = failed
+        ? `Cookie覆盖完成：成功 ${succeeded}/${total}，失败 ${failed}。失败原因：${reasonSummary}`
+        : `Cookie覆盖完成：成功 ${succeeded}/${total}，无失败。${
+            compatibilityFallbacks ? `兼容修正 ${compatibilityFallbacks} 条。` : ''
+          }`;
+
+      return { action, note, total, succeeded, failed, compatibilityFallbacks };
     }
   } catch (error) {
     console.log("error", error);
