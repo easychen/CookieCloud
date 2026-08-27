@@ -1,141 +1,414 @@
 {
-    "appTitle": {
-        "message": "CookieCloud"
-    },
-    "appDesc": {
-        "message": "CookieCloud is a tool for syncing browser cookies to a self-hosted server.",
-        "description": "Uses end-to-end encryption to ensure your cookies are secure."
-    },
-    "test": {
-        "message": "Test"
-    },
-    "fullMessagePlease": {
-        "message": "Please fill in all the information"
-    },
-    "actionNotAllowedInPause": {
-        "message": "This action cannot be performed while paused"
-    },
-    "success": {
-        "message": "Success"
-    },
-    "failedCheckInfo": {
-        "message": "Failed, please check if the information entered is correct"
-    },
-    "saveSucess": {
-        "message": "Save Successful"
-    },
-    "workingMode": {
-        "message": "Mode"
-    },
-    "upToServer": {
-        "message": "Upload to Server"
-    },
-    "overwriteToBrowser": {
-        "message": "Overwrite to Browser"
-    },
-    "pauseSync": {
-        "message": "Pause Sync"
-    },
-    "overwriteModeDesp": {
-        "message": "Overwrite mode is mainly used for cloud and read-only browsers. Overwriting Cookies and Local Storage may cause current browser login and modification operations to fail; moreover, some websites do not allow the same cookie to be logged in on multiple browsers at the same time, which may cause account logouts on other browsers."
-    },
-    "serverHost": {
-        "message": "Server Address"
-    },
-    "serverHostPlaceholder": {
-        "message": "Please enter server address"
-    },
-    "uuid": {
-        "message": "User KEY · UUID"
-    },
-    "uuidPlaceholder": {
-        "message": "Unique User ID"
-    },
-    "reGenerate": {
-        "message": "Regenerate"
-    },
-    "syncPassword": {
-        "message": "End-to-End Encryption Password"
-    },
-    "syncPasswordPlaceholder": {
-        "message": "Data will be unable to be decrypted if lost"
-    },
-    "generate": {
-        "message": "Generate"
-    },
-    "cookieExpireMinutes": {
-        "message": "Cookie Expiry Time · Minutes"
-    },
-    "cookieExpireMinutesPlaceholder": {
-        "message": "0 means it expires immediately after closing the browser"
-    },
-    "syncTimeInterval": {
-        "message": "Sync Interval · Minutes"
-    },
-    "syncTimeIntervalPlaceholder": {
-        "message": "At least 10 minutes"
-    },
-    "syncLocalStorageOrNot": {
-        "message": "Sync Local Storage?"
-    },
-    "yes": {
-        "message": "Yes"
-    },
-    "no": {
-        "message": "No"
-    },
-    "requestHeader": {
-        "message": "Request Header · Optional"
-    },
-    "requestHeaderPlaceholder": {
-        "message": "Append Header to request for server authentication etc., one per line, format as 'Key:Value', no spaces allowed"
-    },
-    "syncDomainKeyword": {
-        "message": "Sync Domain Keyword · Optional"
-    },
-    "syncDomainKeywordPlaceholder": {
-        "message": "One per line, sync all domains containing the keyword, e.g., qq.com, jd.com will include all subdomains, leave blank to sync all by default"
-    },
-    "syncDomainBlacklist": {
-        "message": "Sync Domain Blacklist · Optional"
-    },
-    "syncDomainBlacklistPlaceholder": {
-        "message": "The blacklist only takes effect when the sync domain keyword is empty. One domain per line, matching domains will not be synced"
-    },
-    "cookieKeepLive": {
-        "message": "Cookie Keep Alive · Optional"
-    },
-    "cookieKeepLivePlaceholder": {
-        "message": "Periodically refresh URL in the background to simulate user activity. One URL per line, default 60 minutes, can specify refresh time with URL|minutes format"
-    },
-    "keepLiveStop": {
-        "message": "Pause Sync and Keep Alive"
-    },
-    "syncManual": {
-        "message": "Manual Sync"
-    },
-    "save": {
-        "message": "Save"
-    },
-    "copySuccess": {
-        "message": "Copied to clipboard"
-    },
-    "copyFailed": {
-        "message": "Copy failed, please copy manually"
-    },
-    "cryptoAlgorithm": {
-        "message": "Encryption Algorithm"
-    },
-    "cryptoLegacy": {
-        "message": "CryptoJS (Dynamic IV)"
-    },
-    "cryptoAesCbcFixed": {
-        "message": "AES-128-CBC (Fixed IV)"
-    },
-    "cryptoLegacyDesc": {
-        "message": "Uses CryptoJS encryption algorithm with dynamic IV generation"
-    },
-    "cryptoAesCbcFixedDesc": {
-        "message": "Uses standard AES-128-CBC algorithm with fixed IV (0x0)"
-    }
+  "appTitle": {
+    "message": "CookieCloud"
+  },
+  "appDesc": {
+    "message": "CookieCloud is a tool for syncing browser cookies to a self-hosted server.",
+    "description": "Uses end-to-end encryption to ensure your cookies are secure."
+  },
+  "test": {
+    "message": "Test"
+  },
+  "fullMessagePlease": {
+    "message": "Please fill in all the information"
+  },
+  "actionNotAllowedInPause": {
+    "message": "This action cannot be performed while paused"
+  },
+  "success": {
+    "message": "Success"
+  },
+  "failedCheckInfo": {
+    "message": "Failed, please check if the information entered is correct"
+  },
+  "saveSucess": {
+    "message": "Save Successful"
+  },
+  "workingMode": {
+    "message": "Mode"
+  },
+  "upToServer": {
+    "message": "Upload to Server"
+  },
+  "overwriteToBrowser": {
+    "message": "Overwrite to Browser"
+  },
+  "pauseSync": {
+    "message": "Pause Sync"
+  },
+  "overwriteModeDesp": {
+    "message": "Overwrite mode is mainly used for cloud and read-only browsers. Overwriting Cookies and Local Storage may cause current browser login and modification operations to fail; moreover, some websites do not allow the same cookie to be logged in on multiple browsers at the same time, which may cause account logouts on other browsers."
+  },
+  "serverHost": {
+    "message": "Server Address"
+  },
+  "serverHostPlaceholder": {
+    "message": "Please enter server address"
+  },
+  "uuid": {
+    "message": "User KEY · UUID"
+  },
+  "uuidPlaceholder": {
+    "message": "Unique User ID"
+  },
+  "reGenerate": {
+    "message": "Regenerate"
+  },
+  "syncPassword": {
+    "message": "End-to-End Encryption Password"
+  },
+  "syncPasswordPlaceholder": {
+    "message": "Data will be unable to be decrypted if lost"
+  },
+  "generate": {
+    "message": "Generate"
+  },
+  "cookieExpireMinutes": {
+    "message": "Cookie Expiry Time · Minutes"
+  },
+  "cookieExpireMinutesPlaceholder": {
+    "message": "0 means it expires immediately after closing the browser"
+  },
+  "syncTimeInterval": {
+    "message": "Sync Interval · Minutes"
+  },
+  "syncTimeIntervalPlaceholder": {
+    "message": "At least 10 minutes"
+  },
+  "syncLocalStorageOrNot": {
+    "message": "Sync Local Storage?"
+  },
+  "yes": {
+    "message": "Yes"
+  },
+  "no": {
+    "message": "No"
+  },
+  "requestHeader": {
+    "message": "Request Header · Optional"
+  },
+  "requestHeaderPlaceholder": {
+    "message": "Append Header to request for server authentication etc., one per line, format as 'Key:Value', no spaces allowed"
+  },
+  "syncDomainKeyword": {
+    "message": "Sync Domain Keyword · Optional"
+  },
+  "syncDomainKeywordPlaceholder": {
+    "message": "One per line, sync all domains containing the keyword, e.g., qq.com, jd.com will include all subdomains, leave blank to sync all by default"
+  },
+  "syncDomainBlacklist": {
+    "message": "Sync Domain Blacklist · Optional"
+  },
+  "syncDomainBlacklistPlaceholder": {
+    "message": "The blacklist only takes effect when the sync domain keyword is empty. One domain per line, matching domains will not be synced"
+  },
+  "cookieKeepLive": {
+    "message": "Cookie Keep Alive · Optional"
+  },
+  "cookieKeepLivePlaceholder": {
+    "message": "Periodically refresh URL in the background to simulate user activity. One URL per line, default 60 minutes, can specify refresh time with URL|minutes format"
+  },
+  "keepLiveStop": {
+    "message": "Pause Sync and Keep Alive"
+  },
+  "syncManual": {
+    "message": "Manual Sync"
+  },
+  "save": {
+    "message": "Save"
+  },
+  "copySuccess": {
+    "message": "Copied to clipboard"
+  },
+  "copyFailed": {
+    "message": "Copy failed, please copy manually"
+  },
+  "cryptoAlgorithm": {
+    "message": "Encryption Algorithm"
+  },
+  "cryptoLegacy": {
+    "message": "CryptoJS (Dynamic IV)"
+  },
+  "cryptoAesCbcFixed": {
+    "message": "AES-128-CBC (Fixed IV)"
+  },
+  "cryptoLegacyDesc": {
+    "message": "Uses CryptoJS encryption algorithm with dynamic IV generation"
+  },
+  "cryptoAesCbcFixedDesc": {
+    "message": "Uses standard AES-128-CBC algorithm with fixed IV (0x0)"
+  },
+  "settingsTab": {
+    "message": "Settings"
+  },
+  "managerTab": {
+    "message": "Manager"
+  },
+  "pageSubtitle": {
+    "message": "Manage sync settings and review cookies and sync status"
+  },
+  "statsDomains": {
+    "message": "Domains"
+  },
+  "statsCookies": {
+    "message": "Cookies"
+  },
+  "statsBlacklist": {
+    "message": "Blacklist"
+  },
+  "settingsIntro": {
+    "message": "Configure sync behavior, encryption, and sync scope."
+  },
+  "exportConfig": {
+    "message": "Export Config"
+  },
+  "importConfig": {
+    "message": "Import Config"
+  },
+  "importSuccess": {
+    "message": "Import succeeded"
+  },
+  "importFailed": {
+    "message": "Import failed, please check the JSON file"
+  },
+  "cookieUpdated": {
+    "message": "Cookie updated"
+  },
+  "deleteCookieConfirm": {
+    "message": "Delete this cookie?"
+  },
+  "blacklistAdded": {
+    "message": "Added to sync blacklist"
+  },
+  "managerHintsTitle": {
+    "message": "Usage Notes"
+  },
+  "managerHintEdit": {
+    "message": "Try not to change name, domain, or path while editing, or a new cookie may be written."
+  },
+  "managerHintExpire": {
+    "message": "expirationDate uses a seconds timestamp; leave it blank to keep the current expiry."
+  },
+  "managerHintBlacklist": {
+    "message": "Adding to the blacklist only changes sync scope and does not delete local cookies."
+  },
+  "managerIntro": {
+    "message": "Browse cookies by domain, then search, edit, delete, or blacklist domains."
+  },
+  "managerIntroCompact": {
+    "message": "Browse cookies by domain with filters, batch actions, and editing."
+  },
+  "searchDomainPlaceholder": {
+    "message": "Enter a domain keyword, such as github or qq.com"
+  },
+  "searchDomain": {
+    "message": "Search"
+  },
+  "refreshList": {
+    "message": "Refresh"
+  },
+  "loadingCookies": {
+    "message": "Loading cookies..."
+  },
+  "noCookieFound": {
+    "message": "No matching cookie data found"
+  },
+  "cookieItems": {
+    "message": "cookies"
+  },
+  "addToBlacklist": {
+    "message": "Add to Blacklist"
+  },
+  "expirationPlaceholder": {
+    "message": "Seconds timestamp, optional"
+  },
+  "saveCookie": {
+    "message": "Save Cookie"
+  },
+  "cancelEdit": {
+    "message": "Cancel"
+  },
+  "sessionCookie": {
+    "message": "Session cookie"
+  },
+  "editCookie": {
+    "message": "Edit"
+  },
+  "deleteCookie": {
+    "message": "Delete"
+  },
+  "filterSyncDomains": {
+    "message": "Synced Domains"
+  },
+  "filterAllDomains": {
+    "message": "All"
+  },
+  "filterBlacklistDomains": {
+    "message": "Blacklist"
+  },
+  "tagSync": {
+    "message": "Synced"
+  },
+  "tagBlacklist": {
+    "message": "Blacklisted"
+  },
+  "tagNormal": {
+    "message": "Normal"
+  },
+  "copyDomainCookies": {
+    "message": "Copy Domain Cookies"
+  },
+  "domainActions": {
+    "message": "Actions"
+  },
+  "removeFromBlacklist": {
+    "message": "Remove from Blacklist"
+  },
+  "blacklistRemoved": {
+    "message": "Removed from sync blacklist"
+  },
+  "blacklistEffectiveHint": {
+    "message": "No sync domain keywords are configured, so the blacklist will affect the actual sync scope."
+  },
+  "blacklistInactiveHint": {
+    "message": "Sync domain keywords are configured, so the blacklist is shown only as a marker and does not affect the actual sync scope."
+  },
+  "tagBlacklistInactive": {
+    "message": "Blacklist inactive"
+  },
+  "blacklistInactiveDomainHint": {
+    "message": "Sync domain keywords are configured, so this marker does not currently prevent the domain from being synced."
+  },
+  "addToSync": {
+    "message": "Add to Sync List"
+  },
+  "removeFromSync": {
+    "message": "Remove from Sync List"
+  },
+  "syncAdded": {
+    "message": "Added to sync list"
+  },
+  "syncRemoved": {
+    "message": "Removed from sync list"
+  },
+  "selectionSummary": {
+    "message": "Selected Domains"
+  },
+  "currentFilterCount": {
+    "message": "Visible Results"
+  },
+  "selectionRetainedHint": {
+    "message": "Selections in other filtered results are preserved"
+  },
+  "selectCurrentFiltered": {
+    "message": "Select Visible Results"
+  },
+  "clearSelection": {
+    "message": "Clear All Selections"
+  },
+  "batchAddToSync": {
+    "message": "Batch Add to Sync"
+  },
+  "batchRemoveFromSync": {
+    "message": "Batch Remove from Sync"
+  },
+  "batchAddToBlacklist": {
+    "message": "Batch Add to Blacklist"
+  },
+  "batchRemoveFromBlacklist": {
+    "message": "Batch Remove from Blacklist"
+  },
+  "selectedCurrentFilter": {
+    "message": "Selected all visible results"
+  },
+  "selectionCleared": {
+    "message": "Cleared all selections"
+  },
+  "selectDomainsFirst": {
+    "message": "Select at least one domain first"
+  },
+  "batchActionCompleted": {
+    "message": "Batch action completed"
+  },
+  "batchSyncAdded": {
+    "message": "Added selected domains to sync"
+  },
+  "batchSyncRemoved": {
+    "message": "Removed selected domains from sync"
+  },
+  "batchBlacklistAdded": {
+    "message": "Added selected domains to blacklist"
+  },
+  "batchBlacklistRemoved": {
+    "message": "Removed selected domains from blacklist"
+  },
+  "cookieDeleted": {
+    "message": "Cookie deleted"
+  },
+  "exportedConfig": {
+    "message": "Config exported"
+  },
+  "showValue": {
+    "message": "Show"
+  },
+  "hideValue": {
+    "message": "Hide"
+  },
+  "diffPreviewTitle": {
+    "message": "Diff Preview"
+  },
+  "diffPreviewIntro": {
+    "message": "Review local and remote differences within the current sync scope."
+  },
+  "refreshDiff": {
+    "message": "Refresh Diff"
+  },
+  "loadingDiff": {
+    "message": "Loading..."
+  },
+  "noDiffData": {
+    "message": "No diff data yet. Refresh to load it."
+  },
+  "diffLocalOnly": {
+    "message": "Local Only"
+  },
+  "diffRemoteOnly": {
+    "message": "Remote Only"
+  },
+  "diffChanged": {
+    "message": "Changed"
+  },
+  "diffLoaded": {
+    "message": "Diff preview updated"
+  },
+  "diffFailed": {
+    "message": "Failed to load diff preview"
+  },
+  "syncLogsTitle": {
+    "message": "Sync Logs"
+  },
+  "syncLogsIntro": {
+    "message": "Review recent sync records and results."
+  },
+  "refreshLogs": {
+    "message": "Refresh Logs"
+  },
+  "noSyncLogs": {
+    "message": "No sync logs yet"
+  },
+  "logUpload": {
+    "message": "Upload"
+  },
+  "logDownload": {
+    "message": "Download"
+  },
+  "logSuccess": {
+    "message": "Success"
+  },
+  "logFailed": {
+    "message": "Failed"
+  },
+  "logTrigger": {
+    "message": "Trigger"
+  }
 }

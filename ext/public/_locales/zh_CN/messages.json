@@ -1,183 +1,414 @@
 {
-    "appTitle": {
-        "message": "CookieCloud"
-    },
-    "appDesc": {
-        "message": "CookieCloud是一款向自架服务器同步浏览器Cookie的工具。",
-        "description":"采用端对端加密，保证您的Cookie安全。"
-    },
-    "test":
-    {
-        "message":"测试"
-    },
-    "fullMessagePlease":
-    {
-        "message":"请填写完整的信息"
-    },
-    "actionNotAllowedInPause":
-    {
-        "message":"暂停状态下无法进行此操作"
-    },
-    "success":
-    {
-        "message":"成功"
-    },
-    "failedCheckInfo":
-    {
-        "message":"失败，请检查填写的信息是否正确"
-    },
-    "saveSucess":
-    {
-        "message":"保存成功"
-    },
-    "workingMode":
-    {
-        "message":"工作模式"
-    },
-    "upToServer":{
-        "message":"上传到服务器"
-    },
-    "overwriteToBrowser":{
-        "message":"覆盖到浏览器"
-    },
-    "pauseSync":
-    {
-        "message":"暂停同步"
-    },
-    "overwriteModeDesp":
-    {
-        "message":"覆盖模式主要用于云端和只读用的浏览器，Cookie和Local Storage覆盖可能导致当前浏览器的登录和修改操作失效；另外部分网站不允许同一个cookie在多个浏览器同时登录，可能导致其他浏览器上账号退出。"
-    },
-    "serverHost":
-    {
-        "message":"服务器地址"
-    },
-    "serverHostPlaceholder":
-    {
-        "message":"请输入服务器地址"
-    },
-    "uuid":
-    {
-        "message":"用户KEY · UUID"
-    },
-    "uuidPlaceholder":
-    {
-        "message":"唯一用户ID"
-    },
-    "reGenerate":
-    {
-        "message":"重新生成"
-    },
-    "syncPassword":
-    {
-        "message":"端对端加密密码"
-    },
-    "syncPasswordPlaceholder":
-    {
-        "message":"丢失后数据失效，请妥善保管"
-    },
-    "generate":
-    {
-        "message":"自动生成"
-    },
-    "cookieExpireMinutes":
-    {
-        "message":"Cookie过期时间·分钟"
-    },
-    "cookieExpireMinutesPlaceholder":
-    {
-        "message":"0为关闭浏览器后立刻过期"
-    },
-    "syncTimeInterval":
-    {
-        "message":"同步时间间隔·分钟"
-    },
-    "syncTimeIntervalPlaceholder":
-    {
-        "message":"最少10分钟"
-    },
-    "syncLocalStorageOrNot":
-    {
-        "message":"是否同步Local Storage"
-    },
-    "yes":
-    {
-        "message":"是"
-    },
-    "no":
-    {
-        "message":"否"
-    },
-    "requestHeader":
-    {
-        "message":"请求Header·选填"
-    },
-    "requestHeaderPlaceholder":
-    {
-        "message":"在请求时追加Header，用于服务端鉴权等场景，一行一个，格式为'Key:Value'，不能有空格"
-    },
-    "syncDomainKeyword":
-    {
-        "message":"同步域名关键词·选填"
-    },
-    "syncDomainKeywordPlaceholder":
-    {
-        "message":"一行一个，同步包含关键词的全部域名，如qq.com,jd.com会包含全部子域名，留空默认同步全部"
-    },
-    "syncDomainBlacklist":
-    {
-        "message":"同步域名黑名单·选填"
-    },
-    "syncDomainBlacklistPlaceholder":
-    {
-        "message":"黑名单仅在同步域名关键词为空时生效。一行一个域名，匹配则不参与同步"
-    },
-    "cookieKeepLive":
-    {
-        "message":"Cookie保活·选填"
-    },
-    "cookieKeepLivePlaceholder":
-    {
-        "message":"定时后台刷新URL，模拟用户活跃。一行一个URL，默认60分钟，可用 URL|分钟数 的方式指定刷新时间"
-    },
-    "keepLiveStop":
-    {
-        "message":"暂停同步和保活"
-    },
-    "syncManual":
-    {
-        "message":"手动同步"
-    },
-    "save":
-    {
-        "message":"保存"
-    },
-    "copySuccess":
-    {
-        "message":"已复制到剪贴板"
-    },
-    "copyFailed":
-    {
-        "message":"复制失败，请手动复制"
-    },
-    "cryptoAlgorithm":
-    {
-        "message":"加密算法"
-    },
-    "cryptoLegacy":
-    {
-        "message":"CryptoJS(动态IV)"
-    },
-    "cryptoAesCbcFixed":
-    {
-        "message":"AES-128-CBC(固定IV)"
-    },
-    "cryptoLegacyDesc":
-    {
-        "message":"使用CryptoJS加密算法，会动态生成IV"
-    },
-    "cryptoAesCbcFixedDesc":
-    {
-        "message":"使用标准 AES-128-CBC 算法，IV固定为 0x0"
-    }
+  "appTitle": {
+    "message": "CookieCloud"
+  },
+  "appDesc": {
+    "message": "CookieCloud是一款向自架服务器同步浏览器Cookie的工具。",
+    "description": "采用端对端加密，保证您的Cookie安全。"
+  },
+  "test": {
+    "message": "测试"
+  },
+  "fullMessagePlease": {
+    "message": "请填写完整的信息"
+  },
+  "actionNotAllowedInPause": {
+    "message": "暂停状态下无法进行此操作"
+  },
+  "success": {
+    "message": "成功"
+  },
+  "failedCheckInfo": {
+    "message": "失败，请检查填写的信息是否正确"
+  },
+  "saveSucess": {
+    "message": "保存成功"
+  },
+  "workingMode": {
+    "message": "工作模式"
+  },
+  "upToServer": {
+    "message": "上传到服务器"
+  },
+  "overwriteToBrowser": {
+    "message": "覆盖到浏览器"
+  },
+  "pauseSync": {
+    "message": "暂停同步"
+  },
+  "overwriteModeDesp": {
+    "message": "覆盖模式主要用于云端和只读用的浏览器，Cookie和Local Storage覆盖可能导致当前浏览器的登录和修改操作失效；另外部分网站不允许同一个cookie在多个浏览器同时登录，可能导致其他浏览器上账号退出。"
+  },
+  "serverHost": {
+    "message": "服务器地址"
+  },
+  "serverHostPlaceholder": {
+    "message": "请输入服务器地址"
+  },
+  "uuid": {
+    "message": "用户KEY · UUID"
+  },
+  "uuidPlaceholder": {
+    "message": "唯一用户ID"
+  },
+  "reGenerate": {
+    "message": "重新生成"
+  },
+  "syncPassword": {
+    "message": "端对端加密密码"
+  },
+  "syncPasswordPlaceholder": {
+    "message": "丢失后数据失效，请妥善保管"
+  },
+  "generate": {
+    "message": "自动生成"
+  },
+  "cookieExpireMinutes": {
+    "message": "Cookie过期时间·分钟"
+  },
+  "cookieExpireMinutesPlaceholder": {
+    "message": "0为关闭浏览器后立刻过期"
+  },
+  "syncTimeInterval": {
+    "message": "同步时间间隔·分钟"
+  },
+  "syncTimeIntervalPlaceholder": {
+    "message": "最少10分钟"
+  },
+  "syncLocalStorageOrNot": {
+    "message": "是否同步Local Storage"
+  },
+  "yes": {
+    "message": "是"
+  },
+  "no": {
+    "message": "否"
+  },
+  "requestHeader": {
+    "message": "请求Header·选填"
+  },
+  "requestHeaderPlaceholder": {
+    "message": "在请求时追加Header，用于服务端鉴权等场景，一行一个，格式为'Key:Value'，不能有空格"
+  },
+  "syncDomainKeyword": {
+    "message": "同步域名关键词·选填"
+  },
+  "syncDomainKeywordPlaceholder": {
+    "message": "一行一个，同步包含关键词的全部域名，如qq.com,jd.com会包含全部子域名，留空默认同步全部"
+  },
+  "syncDomainBlacklist": {
+    "message": "同步域名黑名单·选填"
+  },
+  "syncDomainBlacklistPlaceholder": {
+    "message": "黑名单仅在同步域名关键词为空时生效。一行一个域名，匹配则不参与同步"
+  },
+  "cookieKeepLive": {
+    "message": "Cookie保活·选填"
+  },
+  "cookieKeepLivePlaceholder": {
+    "message": "定时后台刷新URL，模拟用户活跃。一行一个URL，默认60分钟，可用 URL|分钟数 的方式指定刷新时间"
+  },
+  "keepLiveStop": {
+    "message": "暂停同步和保活"
+  },
+  "syncManual": {
+    "message": "手动同步"
+  },
+  "save": {
+    "message": "保存"
+  },
+  "copySuccess": {
+    "message": "已复制到剪贴板"
+  },
+  "copyFailed": {
+    "message": "复制失败，请手动复制"
+  },
+  "cryptoAlgorithm": {
+    "message": "加密算法"
+  },
+  "cryptoLegacy": {
+    "message": "CryptoJS(动态IV)"
+  },
+  "cryptoAesCbcFixed": {
+    "message": "AES-128-CBC(固定IV)"
+  },
+  "cryptoLegacyDesc": {
+    "message": "使用CryptoJS加密算法，会动态生成IV"
+  },
+  "cryptoAesCbcFixedDesc": {
+    "message": "使用标准 AES-128-CBC 算法，IV固定为 0x0"
+  },
+  "settingsTab": {
+    "message": "设置"
+  },
+  "managerTab": {
+    "message": "管理"
+  },
+  "pageSubtitle": {
+    "message": "管理同步设置，查看 Cookie 与同步状态"
+  },
+  "statsDomains": {
+    "message": "域名数"
+  },
+  "statsCookies": {
+    "message": "Cookie 数"
+  },
+  "statsBlacklist": {
+    "message": "黑名单"
+  },
+  "settingsIntro": {
+    "message": "配置同步方式、加密信息与同步范围。"
+  },
+  "exportConfig": {
+    "message": "导出配置"
+  },
+  "importConfig": {
+    "message": "导入配置"
+  },
+  "importSuccess": {
+    "message": "导入成功"
+  },
+  "importFailed": {
+    "message": "导入失败，请检查 JSON 文件"
+  },
+  "cookieUpdated": {
+    "message": "Cookie 已更新"
+  },
+  "deleteCookieConfirm": {
+    "message": "确认删除这条 Cookie 吗？"
+  },
+  "blacklistAdded": {
+    "message": "已加入同步黑名单"
+  },
+  "managerHintsTitle": {
+    "message": "使用说明"
+  },
+  "managerHintEdit": {
+    "message": "编辑时尽量不要改动 name、domain、path，以免写入新的 Cookie。"
+  },
+  "managerHintExpire": {
+    "message": "expirationDate 使用秒级时间戳；留空则保留当前过期时间。"
+  },
+  "managerHintBlacklist": {
+    "message": "加入黑名单只影响同步范围，不会删除本地 Cookie。"
+  },
+  "managerIntro": {
+    "message": "按域名查看 Cookie，可搜索、编辑、删除或加入黑名单。"
+  },
+  "managerIntroCompact": {
+    "message": "按域名查看 Cookie，并进行筛选、批量操作和编辑。"
+  },
+  "searchDomainPlaceholder": {
+    "message": "输入域名关键字，如 github 或 qq.com"
+  },
+  "searchDomain": {
+    "message": "搜索域名"
+  },
+  "refreshList": {
+    "message": "刷新列表"
+  },
+  "loadingCookies": {
+    "message": "正在读取 Cookie..."
+  },
+  "noCookieFound": {
+    "message": "没有找到匹配的 Cookie 数据"
+  },
+  "cookieItems": {
+    "message": "条 Cookie"
+  },
+  "addToBlacklist": {
+    "message": "加入同步黑名单"
+  },
+  "expirationPlaceholder": {
+    "message": "秒级时间戳，可留空"
+  },
+  "saveCookie": {
+    "message": "保存 Cookie"
+  },
+  "cancelEdit": {
+    "message": "取消"
+  },
+  "sessionCookie": {
+    "message": "会话 Cookie"
+  },
+  "editCookie": {
+    "message": "编辑"
+  },
+  "deleteCookie": {
+    "message": "删除"
+  },
+  "filterSyncDomains": {
+    "message": "同步域名"
+  },
+  "filterAllDomains": {
+    "message": "所有"
+  },
+  "filterBlacklistDomains": {
+    "message": "黑名单"
+  },
+  "tagSync": {
+    "message": "需同步"
+  },
+  "tagBlacklist": {
+    "message": "黑名单"
+  },
+  "tagNormal": {
+    "message": "普通"
+  },
+  "copyDomainCookies": {
+    "message": "复制当前域名 Cookie"
+  },
+  "domainActions": {
+    "message": "操作"
+  },
+  "removeFromBlacklist": {
+    "message": "移出黑名单"
+  },
+  "blacklistRemoved": {
+    "message": "已移出同步黑名单"
+  },
+  "blacklistEffectiveHint": {
+    "message": "当前未设置同步域名关键词，黑名单会参与实际同步过滤。"
+  },
+  "blacklistInactiveHint": {
+    "message": "当前已设置同步域名关键词，黑名单仅作标记展示，不会影响实际同步范围。"
+  },
+  "tagBlacklistInactive": {
+    "message": "黑名单未生效"
+  },
+  "blacklistInactiveDomainHint": {
+    "message": "已配置同步域名关键词，此标记当前不会阻止该域名参与同步。"
+  },
+  "addToSync": {
+    "message": "加入同步域名"
+  },
+  "removeFromSync": {
+    "message": "移出同步域名"
+  },
+  "syncAdded": {
+    "message": "已加入同步域名"
+  },
+  "syncRemoved": {
+    "message": "已移出同步域名"
+  },
+  "selectionSummary": {
+    "message": "已选域名"
+  },
+  "currentFilterCount": {
+    "message": "当前筛选结果"
+  },
+  "selectionRetainedHint": {
+    "message": "其他筛选结果中的选择已保留"
+  },
+  "selectCurrentFiltered": {
+    "message": "全选当前筛选结果"
+  },
+  "clearSelection": {
+    "message": "取消全部选择"
+  },
+  "batchAddToSync": {
+    "message": "批量加入同步"
+  },
+  "batchRemoveFromSync": {
+    "message": "批量移出同步"
+  },
+  "batchAddToBlacklist": {
+    "message": "批量加入黑名单"
+  },
+  "batchRemoveFromBlacklist": {
+    "message": "批量移出黑名单"
+  },
+  "selectedCurrentFilter": {
+    "message": "已选中当前筛选结果"
+  },
+  "selectionCleared": {
+    "message": "已取消全部选择"
+  },
+  "selectDomainsFirst": {
+    "message": "请先选择域名"
+  },
+  "batchActionCompleted": {
+    "message": "批量操作已完成"
+  },
+  "batchSyncAdded": {
+    "message": "已批量加入同步域名"
+  },
+  "batchSyncRemoved": {
+    "message": "已批量移出同步域名"
+  },
+  "batchBlacklistAdded": {
+    "message": "已批量加入同步黑名单"
+  },
+  "batchBlacklistRemoved": {
+    "message": "已批量移出同步黑名单"
+  },
+  "cookieDeleted": {
+    "message": "Cookie 已删除"
+  },
+  "exportedConfig": {
+    "message": "配置已导出"
+  },
+  "showValue": {
+    "message": "显示"
+  },
+  "hideValue": {
+    "message": "隐藏"
+  },
+  "diffPreviewTitle": {
+    "message": "差异预览"
+  },
+  "diffPreviewIntro": {
+    "message": "查看当前同步范围内的本地与云端差异。"
+  },
+  "refreshDiff": {
+    "message": "刷新差异"
+  },
+  "loadingDiff": {
+    "message": "加载中..."
+  },
+  "noDiffData": {
+    "message": "暂无差异数据，点击刷新差异查看。"
+  },
+  "diffLocalOnly": {
+    "message": "仅本地"
+  },
+  "diffRemoteOnly": {
+    "message": "仅云端"
+  },
+  "diffChanged": {
+    "message": "值变更"
+  },
+  "diffLoaded": {
+    "message": "差异预览已更新"
+  },
+  "diffFailed": {
+    "message": "差异预览加载失败"
+  },
+  "syncLogsTitle": {
+    "message": "同步日志"
+  },
+  "syncLogsIntro": {
+    "message": "查看最近的同步记录与结果。"
+  },
+  "refreshLogs": {
+    "message": "刷新日志"
+  },
+  "noSyncLogs": {
+    "message": "暂无同步日志"
+  },
+  "logUpload": {
+    "message": "上传"
+  },
+  "logDownload": {
+    "message": "下载"
+  },
+  "logSuccess": {
+    "message": "成功"
+  },
+  "logFailed": {
+    "message": "失败"
+  },
+  "logTrigger": {
+    "message": "触发方式"
   }
+}
