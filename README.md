@@ -140,6 +140,62 @@ Download:
    - password: optional, if not provided returns the encrypted string, if provided attempts to decrypt and send the content;
 
 
+### Plaintext mode for private networks
+
+Select **No encryption (plaintext)** under the extension's encryption algorithm setting. The password may be left empty. Save the settings to sync. The default encryption mode remains unchanged.
+
+This mode transmits and stores both cookies and LocalStorage in plaintext and is intended for trusted private networks. Both the extension and server must include this change. The existing Docker Compose file uses a prebuilt image; build and replace the image to enable this feature.
+
+The protocol uses `crypto_type: "none"`; `encrypted` contains a plaintext JSON string with `cookie_data`, `local_storage_data`, and `update_time`. `GET /get/:uuid` returns the field and mode marker; parse it with `JSON.parse(encrypted)`. `POST /get/:uuid` with a `password` also parses plaintext directly. Existing encrypted data is not converted automatically; upload again after changing modes.
+
+### Next automatic synchronization
+
+The settings page shows the next expected automatic upload/download time and a countdown based on saved settings and the actual browser alarm. Draft edits do not affect the schedule; saving refreshes the display. Paused synchronization is shown explicitly. Browser sleep or background scheduling may delay actual execution.
+
+### Clearing all uploaded cookies
+
+The query area provides **清空服务端全部 Cookie** (clear all server cookies). Review the server address and confirm to clear `cookie_data` across UUID records while preserving UUIDs, LocalStorage, other fields and encryption. The result reports the affected UUID and cookie counts.
+
+Encrypted records use the entered password. Records with other passwords, malformed data or write failures are retained and listed as skipped; repeat with the matching password as needed. Browser cookies remain unchanged and automatic uploads may repopulate the server.
+
+`POST /records/clear-cookies` accepts JSON `{ "confirm": "clear-all-cookies", "password": "..." }`. Missing the explicit confirmation marker returns HTTP 400 without modifying records.
+
+### Editing uploaded cookies
+
+The edit form offers **同时更新当前浏览器的 Cookie** (also update the current browser). It defaults to enabled when editing the configured UUID in upload mode. Saving mirrors the edited cookie value into the same local scope, path, store and partition while retaining its domain and HttpOnly attribute, preventing a subsequent manual upload from restoring the old local value. Unchecking it edits only the server. Existing cookies in other scopes are retained and may still be uploaded.
+
+The **删除** (delete) action targets the selected cookie scope, path and partition. Review the UUID, actual domain and path, then select **删除并上传** (delete and upload). Other data and encryption are preserved with the same latest-record merge and conflict protection. Browser cookies are not removed; automatic uploads may upload them again.
+
+Query and search for a cookie, select **修改值** (edit value), then **保存并上传** (save and upload). This updates the row's UUID while preserving other cookies, LocalStorage, cookie attributes and its original encryption mode. Encrypted records require their matching password. Empty values are supported.
+
+Before saving, the extension fetches the latest record and locates the target by name, domain, path, host scope, store and partition. Unrelated automatic uploads are merged while preserving other cookies and LocalStorage. Updates include `expected_encrypted` and retry HTTP 409 conflicts up to three times. Changes to the target value require querying again. Subsequent browser uploads can overwrite manual server edits.
+
+Restoration preserves host-only and partition scope, omitting `domain` for host-only cookies to avoid creating a domain cookie. The query table displays each scope. Existing records with different scopes remain intact and require manual cleanup after reviewing which cookie to retain.
+
+### Current-page cookies and server session keep-alive
+
+Click CookieCloud on a logged-in website to open **当前页面 Cookie**. Read cookies matching that page URL, including HttpOnly cookies, copy a Cookie header or full JSON, edit values, and save locally or upload to the configured UUID. Page uploads merge matching cookie identities into the latest server record, preserving other websites, LocalStorage and existing encryption. Edited values are also saved locally by default. If the website has updated its cookies, refresh the snapshot before saving.
+
+Upload the logged-in cookies first, select **将此页面加入服务端保活**, and click **保存并启用服务端保活** in the server keep-alive area. Rules accept one `https://example.com/account|10` per line (60 minutes by default, 1–10080 minutes, up to 50 URLs per UUID). The server checks due tasks every 30 seconds and issues GET requests using that UUID's latest cookies. It handles redirects and response Set-Cookie headers, preserves unrelated records and encryption, and restores tasks after a restart. The extension never opens or refreshes pages for keep-alive; closing the browser does not stop server tasks.
+
+Encrypted UUIDs require providing their password to the server. Credentials are stored with AES-256-GCM in `data/.keep-alive/`; the key has mode 0600 and the directory mode 0700. Back up the key with the task files. Status responses exclude credentials. Refresh task status to see the last request result and next execution time; disable server keep-alive explicitly to stop it. Extension pause mode and the bottom Save button only affect browser synchronization.
+
+Deploy the updated server before enabling tasks. Server requests do not execute JavaScript, and HTTP success does not establish that a session is still logged in. Browser uploads may replace server-renewed cookies, so choose the appropriate synchronization direction. Containers and partitioned cookies are not combined in outgoing headers; use separate UUIDs for separate browser containers.
+
+### Configuration import and export
+
+The settings page provides **导出配置** (export) and **导入配置** (import). Export downloads the current form as JSON, including UUID, password, request headers and other settings. It does not contain cookies or LocalStorage data; keep the file private.
+
+Import accepts version 1 exports and raw configuration JSON objects, validates fields and fills the draft. Omitted fields retain their current values. Review and click **Save** to apply the configuration to background synchronization. Files are limited to 1 MB.
+
+### Settings tab and uploaded cookie browser
+
+Clicking the toolbar icon opens `popup.html` in a tab, or updates the existing settings tab to the clicked website. Unsaved settings are kept as a draft; **Save** applies them to background synchronization. Refreshing or changing the target page discards unsaved Cookie value edits.
+
+**查询 / 刷新全部记录** lists every uploaded UUID on the configured server. Search by UUID, domain, cookie name or value, or expand a record to inspect its full data. Plaintext records need no password. Encrypted records are decrypted in the extension with the entered password; query again with the appropriate password for UUIDs using other passwords.
+
+`GET /records` returns `{ "records": [{ "uuid": "...", "crypto_type": "...", "encrypted": "..." }] }`. For this private network deployment, it lists all records without requiring each UUID and does not import cookies into the browser. Unreadable files return their UUID and an `error` without preventing other records from being listed.
+
 ## Cookie Encryption and Decryption Algorithm
 
 ### Encryption
@@ -489,4 +545,6 @@ const main = async (env: Record<string, string>) => {
 
 Translated by GPT4
 
+HTTPS keep-alive verifies certificates by default. For a trusted endpoint with an incomplete certificate chain, disable verification for that URL in the extension or set `verify_tls: false` on its rule. This prevents authentication of the server and applies only to the original origin; cross-origin redirects and other tasks still verify certificates.
 
+The settings page offers Light, Dark, and System themes (System by default). Changes apply immediately and persist in the current browser without saving sync settings. System mode follows OS appearance changes across the entire settings page.

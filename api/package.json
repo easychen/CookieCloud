@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "test": "node --test tests/*.test.cjs"
   },
   "dependencies": {
     "body-parser": "^1.20.1",
@@ -16,6 +17,7 @@
     "express-rate-limit": "^7.5.0",
     "multer": "^1.4.5-lts.1",
     "path": "^0.12.7",
+    "tough-cookie": "^6.0.2",
     "winston": "^3.11.0"
   },
   "devDependencies": {

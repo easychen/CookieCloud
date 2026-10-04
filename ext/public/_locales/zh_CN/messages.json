@@ -179,5 +179,15 @@
     "cryptoAesCbcFixedDesc":
     {
         "message":"使用标准 AES-128-CBC 算法，IV固定为 0x0"
-    }
-  }
+    },
+    "cryptoNone": {
+      "message": "不加密（明文）"
+    },
+    "cryptoNoneDesc": {
+      "message": "无需密码，Cookie 和 LocalStorage 将以明文传输并存储，适用于可信内网。"
+    },
+    "cookieExpiryMode": {"message": "Cookie 有效期模式"},
+    "cookieExpiryCustom": {"message": "自定义分钟数"},
+    "cookieExpiryLong": {"message": "长期有效（每次同步延长 400 天）"},
+    "cookieExpiryDesc": {"message": "仅在覆盖到浏览器时生效。0 为会话 Cookie；长期有效每次同步延长 400 天，无法延长网站服务端的登录会话。"}
+}

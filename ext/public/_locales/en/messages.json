@@ -137,5 +137,15 @@
     },
     "cryptoAesCbcFixedDesc": {
         "message": "Uses standard AES-128-CBC algorithm with fixed IV (0x0)"
-    }
+    },
+    "cryptoNone": {
+      "message": "No encryption (plaintext)"
+    },
+    "cryptoNoneDesc": {
+      "message": "No password required. Cookies and LocalStorage are transmitted and stored in plaintext. For trusted private networks."
+    },
+    "cookieExpiryMode": {"message": "Cookie lifetime mode"},
+    "cookieExpiryCustom": {"message": "Custom minutes"},
+    "cookieExpiryLong": {"message": "Long-term (extend by 400 days on each sync)"},
+    "cookieExpiryDesc": {"message": "Applies when restoring cookies to the browser. 0 creates session cookies. Long-term mode extends expiry by 400 days on each sync; it cannot extend the website server session."}
 }

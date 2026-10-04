@@ -1,0 +1,22 @@
+[Unit]
+Description=CookieCloud Node API
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/CookieCloud/api
+ExecStart=/usr/bin/node /root/CookieCloud/api/app.js
+Environment=NODE_ENV=production
+Environment=PORT=8088
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+ReadWritePaths=/root/CookieCloud/api/data /root/CookieCloud/api/logs
+
+[Install]
+WantedBy=multi-user.target

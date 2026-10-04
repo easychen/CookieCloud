@@ -15,7 +15,7 @@ export async function handleConfigMessage(payload: any): Promise<ResponseBody> {
     await upload_cookie(payload);
   
   return {
-    message: result.action,
-    note: result.note || null,
+    message: result?.action || 'failed',
+    note: result?.note || null,
   };
 }
