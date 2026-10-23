@@ -86,6 +86,12 @@ docker run -p=8088:8088 easychen/cookiecloud:latest
 docker run -e API_ROOT=/cookie -p=8088:8088 easychen/cookiecloud:latest
 ```
 
+其他环境变量：
+
+- `PORT`：监听端口，默认 `8088`
+- `RATE_LIMIT_MAX`：每个 IP 每 15 分钟最多请求次数，默认 `100`，设为 `0` 关闭限流
+- `TRUST_PROXY`：部署在 Nginx 等反向代理后面时设为 `1`，限流才会按真实客户端 IP 计算，而不是把所有人都算成代理的 IP
+
 ##### 用 Docker-compose 启动
 
 ```yml
