@@ -41,6 +41,10 @@ We apologize for any inconvenience this may cause 🙇🏻‍♂️
 1. Installation from store: [Edge Store](https://microsoftedge.microsoft.com/addons/detail/cookiecloud/bffenpfpjikaeocaihdonmgnjjdpjkeo) | [Chrome Store](https://chrome.google.com/webstore/detail/cookiecloud/ffjiejobkoibkjlhjnlgmcnnigeelbdl) (Note: Versions in the store might be delayed due to review processes)
 2. Manual download and installation: See Release
 
+Cookie restore preserves explicitly host-only scope and partition keys. Rejected writes do not stop other cookies or local storage from being processed, but the operation reports partial success or failure with cookie counts instead of clean success. Existing browser security rules, including protection against insecure overwrites of Secure cookies, are not bypassed.
+
+To run the focused restore regression check, use Node.js with TypeScript stripping support and run `cd ext && pnpm install --frozen-lockfile && pnpm test`.
+
 
 ## Server Side
 
