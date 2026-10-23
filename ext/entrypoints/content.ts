@@ -9,14 +9,23 @@ export default defineContentScript({
       // Get current domain
       const host = window.location.hostname;
       const config = await load_data("COOKIE_SYNC_SETTING");
-      if (config?.domains) {
-        const domains = config.domains?.trim().split("\n");
-        // Check if domain partially matches each domain in domains
+      const domains = (config?.domains ?? '')
+        .split("\n")
+        .map((line: string) => line.trim())
+        .filter((line: string) => line.length > 0);
+      if (domains.length > 0) {
+        const strict_domain = Number(config?.strict_domain) === 1;
+        const host_normalized = host.trim().toLowerCase().replace(/^\./, '');
         let matched = false;
         for (const domain of domains) {
-          if (host.includes(domain)) matched = true;
+          const domain_normalized = domain.trim().toLowerCase().replace(/^\./, '');
+          if (strict_domain) {
+            if (host_normalized === domain_normalized) matched = true;
+          } else {
+            if (host.includes(domain)) matched = true;
+          }
         }
-        if (domains.length > 0 && !matched) return false;
+        if (!matched) return false;
       }
 
       if (config?.type && config.type == 'down') {

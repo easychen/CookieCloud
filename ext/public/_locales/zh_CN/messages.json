@@ -124,6 +124,14 @@
     {
         "message":"一行一个，同步包含关键词的全部域名，如qq.com,jd.com会包含全部子域名，留空默认同步全部"
     },
+    "strictDomainMatch":
+    {
+        "message":"严格域名匹配（不含子域）"
+    },
+    "strictDomainMatchDesc":
+    {
+        "message":"开启后域名关键词按完全相等匹配，仅同步该域名本身，不包含子域"
+    },
     "syncDomainBlacklist":
     {
         "message":"同步域名黑名单·选填"

@@ -96,6 +96,12 @@
     "syncDomainKeywordPlaceholder": {
         "message": "One per line, sync all domains containing the keyword, e.g., qq.com, jd.com will include all subdomains, leave blank to sync all by default"
     },
+    "strictDomainMatch": {
+        "message": "Strict domain match (no subdomains)"
+    },
+    "strictDomainMatchDesc": {
+        "message": "When enabled, domain keywords are matched by exact equality and will not include subdomains"
+    },
     "syncDomainBlacklist": {
         "message": "Sync Domain Blacklist · Optional"
     },

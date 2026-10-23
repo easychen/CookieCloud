@@ -16,6 +16,7 @@ interface UploadPayload {
   domains?: string;
   blacklist?: string;
   with_storage?: number;
+  strict_domain?: number | boolean;
   headers?: string;
   no_cache?: number;
   expire_minutes?: number;
@@ -32,6 +33,18 @@ interface DownloadPayload {
 
 function is_firefox(): boolean {
   return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+}
+
+function normalize_domain(domain: string): string {
+  return domain.trim().toLowerCase().replace(/^\./, '');
+}
+
+function split_lines(value?: string): string[] {
+  if (!value) return [];
+  return value
+    .split("\n")
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
 }
 
 
@@ -143,13 +156,14 @@ export async function upload_cookie(payload: UploadPayload): Promise<any> {
     showBadge("err");
     return false;
   }
-  const domains = payload.domains?.trim().length ? payload.domains.trim().split("\n") : [];
+  const domains = split_lines(payload.domains);
 
-  const blacklist = payload.blacklist?.trim().length ? payload.blacklist.trim().split("\n") : [];
+  const blacklist = split_lines(payload.blacklist);
 
-  const cookies = await get_cookie_by_domains(domains, blacklist);
+  const strict_domain = Number(payload.strict_domain) === 1;
+  const cookies = await get_cookie_by_domains(domains, blacklist, strict_domain);
   const with_storage = payload['with_storage'] || 0;
-  const local_storages = with_storage ? await get_local_storage_by_domains(domains) : {};
+  const local_storages = with_storage ? await get_local_storage_by_domains(domains, strict_domain) : {};
 
   let headers: any = { 'Content-Type': 'application/json', 'Content-Encoding': 'gzip' }
   // Add authentication header
@@ -338,13 +352,18 @@ function cookie_encrypt(uuid: string, data: string, password: string, crypto_typ
   }
 }
 
-export async function get_local_storage_by_domains(domains: string[] = []): Promise<LocalStorageData> {
+export async function get_local_storage_by_domains(domains: string[] = [], strict_domain: boolean = false): Promise<LocalStorageData> {
   let ret_storage: LocalStorageData = {};
   const local_storages = await browser_load_all('LS-');
   if (Array.isArray(domains) && domains.length > 0) {
     for (const domain of domains) {
       for (const key in local_storages) {
-        if (key.indexOf(domain) >= 0) {
+        if (strict_domain) {
+          if (normalize_domain(key) !== normalize_domain(domain)) continue;
+        } else {
+          if (key.indexOf(domain) < 0) continue;
+        }
+        {
           console.log("domain matched", domain, key);
           ret_storage[key] = local_storages[key];
         }
@@ -354,7 +373,7 @@ export async function get_local_storage_by_domains(domains: string[] = []): Prom
   return ret_storage;
 }
 
-async function get_cookie_by_domains(domains: string[] = [], blacklist: string[] = []): Promise<CookieData> {
+async function get_cookie_by_domains(domains: string[] = [], blacklist: string[] = [], strict_domain: boolean = false): Promise<CookieData> {
   let ret_cookies: CookieData = {};
   // Get cookies
   if (browser.cookies) {
@@ -364,8 +383,15 @@ async function get_cookie_by_domains(domains: string[] = [], blacklist: string[]
       console.log("domains", domains);
       for (const domain of domains) {
         ret_cookies[domain] = [];
+        const the_domain = normalize_domain(domain);
         for (const cookie of cookies) {
-          if (cookie.domain?.includes(domain)) {
+          if (!cookie.domain) continue;
+          if (strict_domain) {
+            if (normalize_domain(cookie.domain) !== the_domain) continue;
+          } else {
+            if (!cookie.domain.includes(domain)) continue;
+          }
+          {
             ret_cookies[domain].push(cookie);
           }
         }

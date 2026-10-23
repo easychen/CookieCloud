@@ -12,6 +12,17 @@ function is_safari()
     return navigator.userAgent.toLowerCase().indexOf('safari') > -1;
 }
 
+function normalize_domain(domain)
+{
+    return String(domain||'').trim().toLowerCase().replace(/^\./, '');
+}
+
+function split_lines(value)
+{
+    if( !value ) return [];
+    return String(value).split("\n").map( line => line.trim() ).filter( line => line.length > 0 );
+}
+
 export async function browser_set( key, value )
 {
     return await browser.storage.local.set( {[key]:value});
@@ -145,13 +156,14 @@ export async function upload_cookie( payload )
         showBadge("err");
         return false;
     }
-    const domains = payload['domains']?.trim().length > 0 ? payload['domains']?.trim().split("\n") : [];
+    const domains = split_lines(payload['domains']);
 
-    const blacklist = payload['blacklist']?.trim().length > 0 ? payload['blacklist']?.trim().split("\n") : [];
+    const blacklist = split_lines(payload['blacklist']);
 
-    const cookies = await get_cookie_by_domains( domains, blacklist );
+    const strict_domain = Number(payload['strict_domain']) === 1;
+    const cookies = await get_cookie_by_domains( domains, blacklist, strict_domain );
     const with_storage = Number(payload['with_storage']) === 1;
-    const local_storages = with_storage ? await get_local_storage_by_domains( domains ) : {};
+    const local_storages = with_storage ? await get_local_storage_by_domains( domains, strict_domain ) : {};
 
     let headers = { 'Content-Type': 'application/json', 'Content-Encoding': 'gzip' }
     // 添加鉴权的 header
@@ -310,7 +322,7 @@ function cookie_decrypt( uuid, encrypted, password )
     return parsed;
 }
 
-export async function get_local_storage_by_domains( domains = [] )
+export async function get_local_storage_by_domains( domains = [], strict_domain = false )
 {
     let ret_storage = {};
     const local_storages = await browser_load_all('LS-');
@@ -320,7 +332,13 @@ export async function get_local_storage_by_domains( domains = [] )
         {
             for( const key in local_storages )
             {
-                if( key.indexOf(domain) >= 0 )
+                if( strict_domain )
+                {
+                    if( normalize_domain(key) != normalize_domain(domain) ) continue;
+                }else
+                {
+                    if( key.indexOf(domain) < 0 ) continue;
+                }
                 {
                     console.log( "domain 匹配", domain, key );
                     ret_storage[key] = local_storages[key];
@@ -331,7 +349,7 @@ export async function get_local_storage_by_domains( domains = [] )
     return ret_storage;
 }
 
-async function get_cookie_by_domains( domains = [], blacklist = [] )
+async function get_cookie_by_domains( domains = [], blacklist = [], strict_domain = false )
 {
     let ret_cookies = {};
     // 获取cookie
@@ -345,9 +363,17 @@ async function get_cookie_by_domains( domains = [], blacklist = [] )
             for( const domain of domains )
             {
                 ret_cookies[domain] = [];
+                const the_domain = normalize_domain(domain);
                 for( const cookie of cookies )
                 {
-                    if( cookie.domain?.includes(domain) )
+                    if( !cookie.domain ) continue;
+                    if( strict_domain )
+                    {
+                        if( normalize_domain(cookie.domain) != the_domain ) continue;
+                    }else
+                    {
+                        if( !cookie.domain.includes(domain) ) continue;
+                    }
                     {
                         ret_cookies[domain].push( cookie );
                     }
