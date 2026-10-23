@@ -24,7 +24,7 @@ class RoboFile extends \Robo\Tasks
         }
 
         $this->_exec("docker buildx create --use --name build-node-example --driver docker-container");
-        $this->_exec("docker buildx build -t easychen/cookiecloud:latest -t easychen/cookiecloud:$uniqid --platform=linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push ./docker");
+        $this->_exec("docker buildx build -t easychen/cookiecloud:latest -t easychen/cookiecloud:$uniqid --platform=linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x --push -f docker/Dockerfile ./api");
         $this->_exec("docker buildx rm build-node-example");
    
     }

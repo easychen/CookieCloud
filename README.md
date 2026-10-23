@@ -72,7 +72,7 @@ We apologize for any inconvenience this may cause 🙇🏻‍♂️
 
 #### Option One: Deploy through Docker, simple, recommended method
 
-Supports architectures: linux/amd64, linux/arm64, etc.
+Supports architectures: linux/amd64, linux/arm64, linux/arm/v7, linux/ppc64le, linux/s390x
 
 
 ##### Start with Docker Command
@@ -89,6 +89,12 @@ Add the environment variable -e API_ROOT=/`subdirectory must start with a slash`
 ```bash
 docker run -e API_ROOT=/cookie -p=8088:8088 easychen/cookiecloud:latest
 ```
+
+Other environment variables:
+
+- `PORT`: listening port, default `8088`
+- `RATE_LIMIT_MAX`: max requests per IP per 15 minutes, default `100`, `0` disables rate limiting
+- `TRUST_PROXY`: set to `1` when running behind a reverse proxy (Nginx etc.), so rate limiting uses the real client IP instead of the proxy IP
 
 ##### Start with Docker-compose
 

@@ -25,11 +25,16 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // add rate limit
 const rateLimit = require('express-rate-limit');
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-});
-app.use(limiter);
+// behind a reverse proxy, set TRUST_PROXY (e.g. 1) so the limiter sees real client IPs
+if (process.env.TRUST_PROXY) app.set('trust proxy', /^\d+$/.test(process.env.TRUST_PROXY) ? parseInt(process.env.TRUST_PROXY) : process.env.TRUST_PROXY);
+const rate_limit_max = parseInt(process.env.RATE_LIMIT_MAX ?? '100'); // 0 = disabled
+if (rate_limit_max > 0) {
+    const limiter = rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      limit: rate_limit_max // limit each IP to RATE_LIMIT_MAX requests per windowMs
+    });
+    app.use(limiter);
+}
 
 const api_root = process.env.API_ROOT ? process.env.API_ROOT.trim().replace(/\/+$/, '') : '';
 // console.log(api_root, process.env);
@@ -134,16 +139,13 @@ app.use(function (err, req, res, next) {
 });
 
 // graceful shutdown
-process.on('SIGTERM', async () => {
+process.on('SIGTERM', () => {
     logger.info('SIGTERM signal received.');
 
     // close http server
     server.close(() => {
         logger.info('HTTP server closed.');
     });
-
-    // close cache
-    await cache.close();
 
     // wait for log write
     setTimeout(() => {
@@ -153,7 +155,7 @@ process.on('SIGTERM', async () => {
 });
 
 const port = process.env.PORT || 8088;
-app.listen(port, () => {
+const server = app.listen(port, () => {
     logger.info(`Server start on http://localhost:${port}${api_root}`);
 });
 

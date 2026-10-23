@@ -31,14 +31,11 @@ const logger = winston.createLogger({
     ]
 });
 
-// 非生产环境下同时输出到控制台
-if (process.env.NODE_ENV !== 'production') {
-    logger.add(new winston.transports.Console({
-        format: winston.format.combine(
-            winston.format.colorize(),
-            winston.format.simple()
-        )
-    }));
-}
+// 同时输出到控制台（容器内供 docker logs 查看），非生产环境下着色
+logger.add(new winston.transports.Console({
+    format: process.env.NODE_ENV !== 'production'
+        ? winston.format.combine(winston.format.colorize(), winston.format.simple())
+        : winston.format.simple()
+}));
 
 module.exports = logger; 
