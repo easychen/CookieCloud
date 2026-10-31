@@ -75,46 +75,97 @@
   background: #a8a8a8;
 }
 
-/* Dark mode support */
+/* Dark mode support
+   注意：弹窗主体（App.tsx）使用硬编码的浅色 Tailwind 类（bg-white / text-gray-* 等），
+   因此这里必须在同一组选择器上整体覆盖配色，只改 body/#app 会出现深色背景配深色文字。
+   感谢 issue #131 中 nccstar082 提供的样式修改思路。 */
 @media (prefers-color-scheme: dark) {
-  body {
-    background-color: #2c3e50;
+  :root {
+    color-scheme: dark;
+  }
+
+  body,
+  #app,
+  #app > div {
+    background-color: #2c3e50 !important;
     color: #ecf0f1;
   }
-  
-  #app {
-    background: #34495e;
+
+  /* 标题与分隔线 */
+  .header,
+  #app .border-b,
+  #app .border-t {
+    border-color: #4a5f7a !important;
   }
-  
-  .header {
-    border-bottom-color: #4a5f7a;
-  }
-  
-  .header h2 {
+
+  #app h2 {
     color: #ecf0f1;
   }
-  
-  .form-group label {
-    color: #bdc3c7;
+
+  /* 标签与说明文字 */
+  #app label,
+  #app .text-gray-800,
+  #app .text-gray-600,
+  #app .text-gray-500,
+  #app .text-gray-400 {
+    color: #bdc3c7 !important;
   }
-  
-  .form-group input,
-  .form-group select,
-  .form-group textarea {
+
+  /* 输入框 / 下拉 / 文本域 */
+  .form-input,
+  .form-textarea,
+  .form-select {
     background-color: #2c3e50;
     border-color: #4a5f7a;
     color: #ecf0f1;
   }
-  
-  .form-group input:focus,
-  .form-group select:focus,
-  .form-group textarea:focus {
+
+  .form-input::placeholder,
+  .form-textarea::placeholder,
+  .form-select::placeholder {
+    color: #7f8c8d;
+    opacity: 1;
+  }
+
+  .form-input:focus,
+  .form-textarea:focus,
+  .form-select:focus {
     border-color: #3498db;
   }
-  
+
+  /* select 下拉选项在部分浏览器继承页面配色，显式指定 */
+  .form-select option {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+  }
+
+  /* 覆盖模式红色警告框：深色下压暗背景，文字保持可读 */
+  #app .bg-red-600 {
+    background-color: #7f1d1d !important;
+    color: #fecaca !important;
+  }
+
+  #app .bg-blue-400 {
+    background-color: #1e3a5f !important;
+    color: #bfdbfe !important;
+  }
+
   .overwrite-warning {
     background-color: #f39c12;
     border-color: #e67e22;
     color: #2c3e50;
+  }
+
+  /* 滚动条 */
+  ::-webkit-scrollbar-track {
+    background: #2c3e50;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #4a5f7a;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #5d718b;
   }
 }
