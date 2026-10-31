@@ -3,7 +3,7 @@
   "displayName": "CookieCloud",
   "description": "Sync cookies between browses",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
   "scripts": {
     "dev": "wxt",
