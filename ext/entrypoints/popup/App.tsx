@@ -92,12 +92,10 @@ const CookieCloudPopup: React.FC = () => {
       const ret = await handleConfigMessage({ ...data, no_cache: 1 });
       console.log(action + " returned", ret);
       
-      if (ret && ret.message === 'done') {
-        if (ret.note) {
-          alert(ret.note);
-        } else {
-          alert(action + (browser.i18n.getMessage('success') || '成功'));
-        }
+      if (ret && ret.note) {
+        alert(ret.note);
+      } else if (ret && ret.message === 'done') {
+        alert(action + (browser.i18n.getMessage('success') || '成功'));
       } else {
         alert(action + (browser.i18n.getMessage('failedCheckInfo') || '失败，请检查填写的信息是否正确'));
       }
@@ -115,8 +113,6 @@ const CookieCloudPopup: React.FC = () => {
     
     try {
       await save_data("COOKIE_SYNC_SETTING", data);
-      const ret = await load_data("COOKIE_SYNC_SETTING");
-      console.log("Read after save", ret);
       alert(browser.i18n.getMessage("saveSucess") || "保存成功");
     } catch (error) {
       console.error('Save failed:', error);

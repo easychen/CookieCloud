@@ -15,6 +15,7 @@
     "zip:chrome": "wxt zip -b chrome",
     "zip:firefox": "wxt zip -b firefox",
     "compile": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/download-cookie.test.mjs",
     "github:build": "node scripts/release.mjs --mode=build",
     "github:release": "node scripts/release.mjs --mode=release",
     "postinstall": "wxt prepare"

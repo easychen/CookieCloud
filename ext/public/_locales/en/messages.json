@@ -21,6 +21,9 @@
     "failedCheckInfo": {
         "message": "Failed, please check if the information entered is correct"
     },
+    "cookieRestoreIncomplete": {
+        "message": "Cookie restore incomplete: $1 succeeded, $2 failed ($3 attempted). Browser cookie security rules were not bypassed."
+    },
     "saveSucess": {
         "message": "Save Successful"
     },
