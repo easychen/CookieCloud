@@ -26,6 +26,9 @@
     {
         "message":"失败，请检查填写的信息是否正确"
     },
+    "cookieRestoreIncomplete": {
+        "message": "Cookie 恢复未全部完成：成功 $1 个，失败 $2 个（共尝试 $3 个）。未绕过浏览器的 Cookie 安全规则。"
+    },
     "saveSucess":
     {
         "message":"保存成功"

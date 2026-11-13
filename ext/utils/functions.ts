@@ -232,61 +232,69 @@ export async function download_cookie(payload: DownloadPayload): Promise<any> {
     if (result && result.encrypted) {
       const useCryptoType = crypto_type || result.crypto_type || 'legacy';
       const { cookie_data, local_storage_data } = cookie_decrypt(uuid, result.encrypted, password, useCryptoType);
-      let action = 'done';
+      let attempted = 0;
+      let succeeded = 0;
+      let failed = 0;
       if (cookie_data) {
         for (let domain in cookie_data) {
-          // console.log( "domain" , cookies[domain] );
           if (Array.isArray(cookie_data[domain])) {
             for (let cookie of cookie_data[domain]) {
-              let new_cookie: any = {};
-              ['name', 'value', 'domain', 'path', 'secure', 'httpOnly', 'sameSite'].forEach(key => {
-                if (key == 'sameSite' && cookie[key].toLowerCase() == 'unspecified' && is_firefox()) {
-                  // In Firefox, unspecified will cause cookie setting to fail
-                  // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/cookies/SameSiteStatus
-                  new_cookie['sameSite'] = 'no_restriction';
-                } else {
-                  new_cookie[key] = cookie[key];
-                }
-              });
-              if (expire_minutes) {
-                // Current timestamp (seconds)
-                const now = parseInt((new Date().getTime() / 1000).toString());
-                console.log("now", now);
-                new_cookie.expirationDate = now + parseInt(expire_minutes.toString()) * 60;
-                console.log("new_cookie.expirationDate", new_cookie.expirationDate);
-
-              }
-              new_cookie.url = buildUrl(cookie.secure, cookie.domain, cookie.path);
-              console.log("new cookie", new_cookie);
+              attempted++;
               try {
-                const set_ret = await browser.cookies.set(new_cookie);
-                console.log("set cookie", set_ret);
-              } catch (error) {
-                showBadge("err");
-                console.log("set cookie error", error);
+                let new_cookie: any = {};
+                ['name', 'value', 'path', 'secure', 'httpOnly', 'sameSite'].forEach(key => {
+                  if (key == 'sameSite' && cookie[key].toLowerCase() == 'unspecified' && is_firefox()) {
+                    // In Firefox, unspecified will cause cookie setting to fail
+                    // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/cookies/SameSiteStatus
+                    new_cookie['sameSite'] = 'no_restriction';
+                  } else {
+                    new_cookie[key] = cookie[key];
+                  }
+                });
+                // Domain must be omitted to preserve host-only scope and __Host- cookies.
+                if (cookie.hostOnly !== true) {
+                  new_cookie.domain = cookie.domain;
+                }
+                if (cookie.partitionKey !== undefined) {
+                  new_cookie.partitionKey = cookie.partitionKey;
+                }
+                if (expire_minutes) {
+                  // Current timestamp (seconds)
+                  const now = parseInt((new Date().getTime() / 1000).toString());
+                  new_cookie.expirationDate = now + parseInt(expire_minutes.toString()) * 60;
+                }
+                new_cookie.url = buildUrl(cookie.secure, cookie.domain, cookie.path);
+                if (await browser.cookies.set(new_cookie)) {
+                  succeeded++;
+                } else {
+                  failed++;
+                }
+              } catch {
+                failed++;
               }
-
-
             }
           }
         }
-      } else {
-        action = 'false';
       }
 
-      console.log("local_storage_data", local_storage_data);
       if (local_storage_data) {
         for (let domain in local_storage_data) {
           const key = 'LS-' + domain;
           await save_data(key, local_storage_data[domain]);
-          console.log("save local storage", key, local_storage_data[domain]);
         }
       }
 
-      return { action };
+      const action = !cookie_data ? 'false' : failed ? (succeeded ? 'partial' : 'error') : 'done';
+      const note = failed ? (
+        browser.i18n.getMessage('cookieRestoreIncomplete', [String(succeeded), String(failed), String(attempted)]) ||
+        `Cookie restore incomplete: ${succeeded} succeeded, ${failed} failed (${attempted} attempted). Browser cookie security rules were not bypassed.`
+      ) : null;
+      if (failed) showBadge("err");
+      console.log("Cookie restore summary", { action, attempted, succeeded, failed });
+      return { action, attempted, succeeded, failed, note };
     }
-  } catch (error) {
-    console.log("error", error);
+  } catch {
+    console.log("Cookie download failed");
     showBadge("err");
     return false;
   }
