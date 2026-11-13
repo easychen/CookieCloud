@@ -101,7 +101,7 @@ jobs:
           ref="$IMAGE:${{ steps.meta.outputs.tag }}"
           echo "== $ref"
           docker buildx imagetools inspect "$ref"
-          got="$(docker buildx imagetools inspect "$ref" --format '{{range .Manifests}}{{.Platform}}{{println}}{{end}}')"
+          got="$(docker buildx imagetools inspect "$ref" --raw | jq -r '.manifests[] | "\(.platform.os)/\(.platform.architecture)" + (if .platform.variant then "/\(.platform.variant)" else "" end)')"
           echo "$got"
           for p in linux/amd64 linux/arm/v7 linux/arm64 linux/ppc64le linux/s390x; do
             echo "$got" | grep -qx "$p" || { echo "::error::$ref 缺少平台 $p"; exit 1; }
@@ -119,7 +119,7 @@ jobs:
         if: ${{ inputs.publish_latest }}
         run: |
           set -euo pipefail
-          got="$(docker buildx imagetools inspect "$IMAGE:latest" --format '{{range .Manifests}}{{.Platform}}{{println}}{{end}}')"
+          got="$(docker buildx imagetools inspect "$IMAGE:latest" --raw | jq -r '.manifests[] | "\(.platform.os)/\(.platform.architecture)" + (if .platform.variant then "/\(.platform.variant)" else "" end)')"
           echo "$got"
           for p in linux/amd64 linux/arm/v7 linux/arm64 linux/ppc64le linux/s390x; do
             echo "$got" | grep -qx "$p" || { echo "::error::latest 缺少平台 $p"; exit 1; }
