@@ -1,0 +1,137 @@
+name: Docker Image
+
+# 手动发布多架构镜像 easychen/cookiecloud。
+#
+# 说明：镜像源码（docker/ 与 api/ 的最新实现，含 PR #138）在 master 分支；
+# workflow_dispatch 要求本文件存在于默认分支（main），所以这里默认
+# checkout master 构建，可用 source_ref 覆盖。
+#
+# 发布顺序：先推日期 tag → 校验 manifest 平台 → 再移动 latest，
+# 避免单架构构建把 latest 覆盖掉（issue #139）。
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "发布标签（留空则用当天日期，如 2026.11.13）"
+        required: false
+        type: string
+      source_ref:
+        description: "构建用的 git ref"
+        required: true
+        default: master
+        type: string
+      publish_latest:
+        description: "校验通过后把 latest 指向本次构建"
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-image
+  cancel-in-progress: false
+
+env:
+  IMAGE: easychen/cookiecloud
+  PLATFORMS: linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+
+      - name: Resolve tag
+        id: meta
+        run: |
+          TAG="${{ inputs.tag }}"
+          if [ -z "$TAG" ]; then
+            TAG="$(date -u +%Y.%m.%d)"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "ref=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "Publishing $IMAGE:$TAG from $(git rev-parse --short HEAD) (${{ inputs.source_ref }})"
+
+      - name: Check Docker Hub credentials
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ -z "$DOCKERHUB_USERNAME" ] || [ -z "$DOCKERHUB_TOKEN" ]; then
+            echo "::error::缺少仓库 secrets DOCKERHUB_USERNAME / DOCKERHUB_TOKEN，无法推送镜像"
+            exit 1
+          fi
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 只推日期 tag；latest 等校验通过后再指过来。
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api
+          file: ./docker/Dockerfile
+          platforms: ${{ env.PLATFORMS }}
+          push: true
+          provenance: false
+          tags: ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Verify manifest
+        run: |
+          set -euo pipefail
+          ref="$IMAGE:${{ steps.meta.outputs.tag }}"
+          echo "== $ref"
+          docker buildx imagetools inspect "$ref"
+          got="$(docker buildx imagetools inspect "$ref" --format '{{range .Manifests}}{{.Platform}}{{println}}{{end}}')"
+          echo "$got"
+          for p in linux/amd64 linux/arm/v7 linux/arm64 linux/ppc64le linux/s390x; do
+            echo "$got" | grep -qx "$p" || { echo "::error::$ref 缺少平台 $p"; exit 1; }
+          done
+
+      - name: Promote latest
+        if: ${{ inputs.publish_latest }}
+        run: |
+          set -euo pipefail
+          docker buildx imagetools create \
+            -t "$IMAGE:latest" \
+            "$IMAGE:${{ steps.meta.outputs.tag }}"
+
+      - name: Verify latest
+        if: ${{ inputs.publish_latest }}
+        run: |
+          set -euo pipefail
+          got="$(docker buildx imagetools inspect "$IMAGE:latest" --format '{{range .Manifests}}{{.Platform}}{{println}}{{end}}')"
+          echo "$got"
+          for p in linux/amd64 linux/arm/v7 linux/arm64 linux/ppc64le linux/s390x; do
+            echo "$got" | grep -qx "$p" || { echo "::error::latest 缺少平台 $p"; exit 1; }
+          done
+
+      - name: Summary
+        run: |
+          {
+            echo "### Docker image published"
+            echo ""
+            echo "- image: \`$IMAGE:${{ steps.meta.outputs.tag }}\`"
+            echo "- latest moved: \`${{ inputs.publish_latest }}\`"
+            echo "- source: \`${{ inputs.source_ref }}\` @ \`${{ steps.meta.outputs.ref }}\`"
+            echo "- platforms: \`$PLATFORMS\`"
+          } >> "$GITHUB_STEP_SUMMARY"
