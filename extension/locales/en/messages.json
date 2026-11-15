@@ -21,7 +21,7 @@
     "failedCheckInfo": {
         "message": "Failed, please check if the information entered is correct"
     },
-    "saveSucess": {
+    "saveSuccess": {
         "message": "Save Successful"
     },
     "workingMode": {
@@ -78,6 +78,93 @@
     "syncLocalStorageOrNot": {
         "message": "Sync Local Storage?"
     },
+    "storageType": {
+        "message": "Storage Type"
+    },
+    "storageTypeServer": {
+        "message": "Self-hosted Server"
+    },
+    "storageTypeS3": {
+        "message": "S3 / S3 Compatible"
+    },
+    "storageTypeWebDAV": {
+        "message": "WebDAV"
+    },
+    "webdavEndpoint": {
+        "message": "WebDAV Endpoint"
+    },
+    "webdavEndpointPlaceholder": {
+        "message": "Example: https://dav.example.com/remote.php/dav/files/user"
+    },
+    "webdavUsername": {
+        "message": "WebDAV Username"
+    },
+    "webdavUsernamePlaceholder": {
+        "message": "Username"
+    },
+    "webdavPassword": {
+        "message": "WebDAV Password"
+    },
+    "webdavPasswordPlaceholder": {
+        "message": "Password or app password"
+    },
+    "webdavPath": {
+        "message": "WebDAV Path"
+    },
+    "webdavPathPlaceholder": {
+        "message": "Path prefix, e.g. cookiecloud"
+    },
+    "webdavConfigMissing": {
+        "message": "WebDAV endpoint is required"
+    },
+    "s3Bucket": {
+        "message": "S3 Bucket"
+    },
+    "s3BucketPlaceholder": {
+        "message": "Bucket name"
+    },
+    "s3Region": {
+        "message": "S3 Region"
+    },
+    "s3RegionPlaceholder": {
+        "message": "Region, e.g. us-east-1"
+    },
+    "s3Endpoint": {
+        "message": "S3 Endpoint"
+    },
+    "s3EndpointPlaceholder": {
+        "message": "Optional for S3-compatible, e.g. https://s3.example.com"
+    },
+    "s3AccessKey": {
+        "message": "S3 Access Key"
+    },
+    "s3AccessKeyPlaceholder": {
+        "message": "Access Key ID"
+    },
+    "s3SecretKey": {
+        "message": "S3 Secret Key"
+    },
+    "s3SecretKeyPlaceholder": {
+        "message": "Secret Access Key"
+    },
+    "s3SessionToken": {
+        "message": "S3 Session Token"
+    },
+    "s3SessionTokenPlaceholder": {
+        "message": "Optional session token"
+    },
+    "s3PathPrefix": {
+        "message": "S3 Path Prefix"
+    },
+    "s3PathPrefixPlaceholder": {
+        "message": "Path prefix, e.g. cookiecloud"
+    },
+    "s3ForcePathStyle": {
+        "message": "Force Path Style"
+    },
+    "s3ConfigMissing": {
+        "message": "S3 bucket and keys are required"
+    },
     "yes": {
         "message": "Yes"
     },
@@ -116,5 +203,8 @@
     },
     "save": {
         "message": "Save"
+    },
+    "openInTab": {
+        "message": "Open in new tab"
     }
 }

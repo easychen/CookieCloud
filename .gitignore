@@ -4,3 +4,4 @@ data/
 logs/
 ref/
 .DS_Store
+extension/pnpm-workspace.yaml
