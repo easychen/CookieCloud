@@ -339,15 +339,28 @@ function cookie_encrypt(uuid: string, data: string, password: string, crypto_typ
 }
 
 export async function get_local_storage_by_domains(domains: string[] = []): Promise<LocalStorageData> {
-  let ret_storage: LocalStorageData = {};
   const local_storages = await browser_load_all('LS-');
-  if (Array.isArray(domains) && domains.length > 0) {
-    for (const domain of domains) {
-      for (const key in local_storages) {
-        if (key.indexOf(domain) >= 0) {
-          console.log("domain matched", domain, key);
-          ret_storage[key] = local_storages[key];
-        }
+
+  // 同步域名关键词留空时，默认同步全部域名
+  if (!Array.isArray(domains)) {
+    return local_storages;
+  }
+
+  const normalizedDomains = domains
+    .map(d => d.trim())
+    .filter(d => d.length > 0);
+
+  // 如果没有有效的域名关键词（包括用户完全留空的情况），则返回全部
+  if (normalizedDomains.length === 0) {
+    return local_storages;
+  }
+
+  const ret_storage: LocalStorageData = {};
+  for (const domain of normalizedDomains) {
+    for (const key in local_storages) {
+      if (key.indexOf(domain) >= 0) {
+        console.log("domain matched", domain, key);
+        ret_storage[key] = local_storages[key];
       }
     }
   }
